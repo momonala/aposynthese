@@ -1,6 +1,6 @@
 from tqdm import tqdm
 from moviepy.editor import *
-from signal_process_utils import Song, generate_keyboard
+from signal_process_utils import Song
 
 
 song_file = os.path.join('assets', 'twinkle.mp3')
@@ -10,7 +10,7 @@ frames = []
 sample_rate = 100
 for offset in tqdm(range(0, s.ms, sample_rate)):
     sample_data = s.sample(offset=offset)
-    piano_lit = generate_keyboard(sample_data)
+    piano_lit = s.generate_keyboard(sample_data)
     frames.append(piano_lit)
     
 clips = [ImageClip(f).set_duration(sample_rate/1000.) for f in frames]
