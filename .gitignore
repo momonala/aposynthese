@@ -1,6 +1,5 @@
 .DS_Store
 .idea/
 __pycache__/
-.ipynb_checkpoints/	
-*mp3
-
+.ipynb_checkpoints/
+*mp4
