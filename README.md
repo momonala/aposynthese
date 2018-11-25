@@ -6,8 +6,9 @@
 `python mp3_to_piano.py`
 
 # To Do
-- CLI arguments for converting files
 - check why timing of notes is off (FFT samping rate?)
+- figure out how to display chords more cleanly
+- test with more complex songs
 - come up with a clever name
 
 # Installation

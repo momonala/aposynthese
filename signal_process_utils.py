@@ -81,7 +81,7 @@ class Song:
         self.seg = audiosegment.from_file(mp3_file)
         self.arr = np.array(self.seg.seg.get_array_of_samples())
         self.freqs = generate_frequency_table()
-                
+
         # other important values
         self.in_sample_rate = self.seg.frame_rate
         self.num_samples = len(self.arr)
@@ -89,12 +89,12 @@ class Song:
         self.bpm = self._get_bpm()
         self.num_beats = int(self.num_samples / self.bpm)
         self.max_freq = 4186  # hz of high c (key 88)
-        
+
         def find_nearest(value):
             """Quantize to nearest note, indexed by freqs df. """
             array = self.freqs['Frequency (Hz)']
             idx = (np.abs(array - value)).idxmin()
-            return 89-idx
+            return 89 - idx
         self.get_notes = np.vectorize(find_nearest)
 
     def _get_bpm(self):
@@ -104,7 +104,7 @@ class Song:
         """
         low_seg = self.seg.low_pass_filter(120.0)
         # anything above average loudness
-        beat_loudness = low_seg.dBFS 
+        beat_loudness = low_seg.dBFS
         minimum_silence = int(60000 / 240.0)  # max tempo
         nonsilent_times = detect_nonsilent(low_seg, minimum_silence, beat_loudness)
 
@@ -121,7 +121,7 @@ class Song:
 
         bpm = 60000 / space
         return bpm
-    
+
     def _get_fft(self, offset, plot=False):
         """  Generate FFT for sample.
 
@@ -134,7 +134,7 @@ class Song:
         """
         delta = int(self.ms / self.bpm)  # ms
 
-        hist_bins, hist_vals = self.seg[1+offset:delta+offset].fft()
+        hist_bins, hist_vals = self.seg[1 + offset:delta + offset].fft()
         hist_vals_real_normed = np.abs(hist_vals) / len(hist_vals)
 
         thresh = hist_bins < self.max_freq
@@ -190,7 +190,7 @@ class Song:
         if len(dominant_freqs) == 0:
             return pd.DataFrame(columns=['note', 'f', 'db', 'num'])
         notes_index = self.get_notes(dominant_freqs)
-        notes = self.freqs.loc[89-np.unique(notes_index)].Helmholtzname
+        notes = self.freqs.loc[89 - np.unique(notes_index)].Helmholtzname
         notes_out = pd.DataFrame([notes.values, dominant_freqs, dbs, notes_index]).T
         notes_out.columns = ['note', 'f', 'db', 'num']
         return notes_out
@@ -229,4 +229,3 @@ class Song:
             piano_template = cv2.addWeighted(piano_template, 1 - intensity, piano, intensity, 0)
 
         return piano_template
-
