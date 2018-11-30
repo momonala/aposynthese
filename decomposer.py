@@ -128,7 +128,7 @@ class Decomposer:
 
                 if self.debug:
                     # bc dataframes are prettier than matrices
-                    helmholtz = self.freq_table.loc[89 - f_table_idx].Helmholtzname
+                    helmholtz = self.freq_table.ix[90 - f_table_idx].Helmholtzname
                     notes_out = pd.DataFrame([
                         helmholtz.values,
                         detected_freqs,
@@ -219,8 +219,10 @@ class Decomposer:
         out = concatenate_videoclips(frames, method="compose")
         out = out.set_audio(AudioFileClip(self.mp3_file))
 
-        # temp audio to deal with moviepy bug
-        out.write_videofile("test_spec.mp4",
+        # use temp audio to deal with moviepy bug
+        outfile = self.mp3_file.replace('assets', 'output')
+        outfile = outfile.replace('mp3', 'mp4')
+        out.write_videofile(outfile,
                             fps=30,
                             temp_audiofile="temp-audio.m4a",
                             remove_temp=True,

@@ -15,7 +15,6 @@ Convert mp3 files into piano visualiztions by decomposing its underlying constit
 -s, --song      Name of the song in assets/ to transpose          default=None, type=str
 -y, --youtube   URL of youtube video to transpose                 default=None, type=str
 -p, --plot      Whether to plot the spectrograms for debugging    default=False, type=bool
-
 ```
 
 # Installation
@@ -25,5 +24,6 @@ Convert mp3 files into piano visualiztions by decomposing its underlying constit
 # To Do
 - test with more complex songs
 - write 'how it works' blog post
+- create better GUI than using OpenCV
 - create guitar-hero like visualizaions for seeing future notes
 - come up with a clever name

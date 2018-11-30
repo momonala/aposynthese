@@ -39,12 +39,20 @@ if args.youtube:
         os.rename(mp3_name, song_file)
     except FileExistsError:
         pass
-else:
+
+elif args.song:
     song_file = os.path.join('assets', args.song)
     if not os.path.isfile(song_file):
-        logger.warning(f'Song {args.song} does not exist in assets folder. Exiting.')
+        logger.error(f'Song {args.song} does not exist in assets directory. Exiting.')
         sys.exit()
-    logger.info('Found local video file.')
+    logger.info(f'Found local video file {song_file}.')
+
+else:
+    logger.error('Must choose one option: --song or --youtube')
+    sys.exit()
+
+if not os.path.isdir('output'):
+    os.mkdir('output')
 
 decomposer = Decomposer(song_file, plot=args.plot)
 decomposer.cvt_mp3_to_piano()
