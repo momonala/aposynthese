@@ -1,4 +1,4 @@
-# musika
+# Aposynthese
 
 A tool to give anyone perfect pitch. 
 
@@ -52,4 +52,3 @@ If this pipeline is applied across all time points, we can generate a video like
 - write 'how it works' blog post
 - create better GUI than using OpenCV
 - create guitar-hero like visualizaions for seeing future notes
-- come up with a clever name
