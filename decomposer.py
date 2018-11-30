@@ -16,7 +16,7 @@ from signal_process_utils import generate_frequency_table
 
 class Decomposer:
 
-    def __init__(self, mp3_file, plot=False, debug=False):
+    def __init__(self, mp3_file, plot=False, stop_time=None, debug=False):
         """
         Class to decompose an mp3 file into its frequency vs. time spectrogram, and map that to piano keys.
         Args:
@@ -26,6 +26,7 @@ class Decomposer:
         """
         self.mp3_file = mp3_file
         self.plot = plot
+        self.stop_time = stop_time
         self.debug = debug
 
         # audio/acoustic data
@@ -90,6 +91,11 @@ class Decomposer:
         # median filter along time axis to get rid of white noise
         self.amplitudes = np.apply_along_axis(self._median_filter, 1, self.amplitudes)
 
+        if self.stop_time:
+            self.t_final = np.where(self.times < self.stop_time)[0][-1]
+        else:
+            self.t_final = self.times.shape[0]
+
         self._plot_spectrogram(self.amplitudes, 'Raw Spectrogram')
 
     def _parse_spectrogram(self):
@@ -132,7 +138,7 @@ class Decomposer:
 
                 if self.debug:
                     # bc dataframes are prettier than matrices
-                    helmholtz = self.freq_table.iloc[89 - f_table_idx].Helmholtzname
+                    helmholtz = self.freq_table.ix[90 - f_table_idx].Helmholtzname
                     notes_out = pd.DataFrame([
                         helmholtz.values,
                         detected_freqs,
@@ -146,12 +152,12 @@ class Decomposer:
             return None, None
 
         # init keyboard frames with predefined shape - will eventuall turn to video
-        keyboard_img_size = [self.times.shape[0]] + [232, 1910, 3]
+        keyboard_img_size = [self.t_final] + [232, 1910, 3]
         self.keyboard_frames = np.empty(keyboard_img_size)
 
         # init dom freqs matrix, iterate through time, find peaks and threshold
         self.dominant_amplitudes = self.amplitudes.copy()
-        for t in tqdm(range(self.times.shape[0])):
+        for t in tqdm(range(self.t_final)):
             _get_peaks_and_threshold(t)
         print('[Decomposer] >>>> Found dominant frequencies.')
 
@@ -159,7 +165,7 @@ class Decomposer:
         self.dominant_amplitudes = np.apply_along_axis(self._median_filter, 1, self.dominant_amplitudes)
 
         # iterate through time, map dominant frequencies to notes, generate keyboard visualizations
-        for t in tqdm(range(self.times.shape[0])):
+        for t in tqdm(range(self.t_final)):
             t_note_data = _get_notes(t)
             keyboard = self._generate_keyboard(*t_note_data)
             self.keyboard_frames[t, ...] = keyboard

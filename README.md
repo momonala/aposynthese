@@ -14,6 +14,7 @@ Convert mp3 files into piano visualiztions by decomposing its underlying constit
 -h, --help      Print this help text and exit.
 -s, --song      Name of the song in assets/ to transpose          default=None, type=str
 -y, --youtube   URL of youtube video to transpose                 default=None, type=str
+-m, --max_time  Time to process audio file until                  default=None, type=int
 -p, --plot      Whether to plot the spectrograms for debugging    default=False, type=bool
 ```
 

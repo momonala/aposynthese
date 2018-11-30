@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 parser = argparse.ArgumentParser()
 parser.add_argument('-s', '--song', default=None, type=str)
 parser.add_argument('-y', '--youtube', default=None, type=str)
+parser.add_argument('-m', '--max_time', default=None, type=int)
 parser.add_argument('-p', '--plot', default=False, type=bool)
 
 args = parser.parse_args()
