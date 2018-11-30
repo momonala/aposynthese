@@ -36,18 +36,20 @@ if args.youtube:
     mp3_name = raw_name + '.mp3'
     AudioSegment.from_file(raw_name).export(mp3_name, format="mp3")
     logger.info(f'Sucessfully converted video file to mp3: {mp3_name}.')
-    song_file = os.path.join('assets', mp3_name)
+    song_file = os.path.join('input', mp3_name)
 
     try:
         os.remove(raw_name)  # clean up
+        if not os.path.isdir('input'): os.mkdir('input')
+        if not os.path.isdir('output'): os.mkdir('output')
         os.rename(mp3_name, song_file)
     except FileExistsError:
         pass
 
 elif args.song:
-    song_file = os.path.join('assets', args.song)
+    song_file = os.path.join('input', args.song)
     if not os.path.isfile(song_file):
-        logger.error(f'Song {args.song} does not exist in assets directory. Exiting.')
+        logger.error(f'Song {args.song} does not exist in input directory. Exiting.')
         sys.exit()
     logger.info(f'Found local video file {song_file}.')
 

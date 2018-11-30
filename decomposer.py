@@ -227,7 +227,7 @@ class Decomposer:
         out = out.set_audio(AudioFileClip(self.mp3_file))
 
         # use temp audio to deal with moviepy bug
-        outfile = self.mp3_file.replace('assets', 'output')
+        outfile = self.mp3_file.replace('input', 'output')
         outfile = outfile.replace('mp3', 'mp4')
         out.write_videofile(outfile,
                             fps=30,
