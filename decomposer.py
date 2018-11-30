@@ -33,6 +33,10 @@ class Decomposer:
         self.raw_samples = np.array(self.seg.seg.get_array_of_samples())
         self.freq_table = generate_frequency_table()
 
+        # init a fresh piano img
+        piano_img = os.path.join('assets', 'piano.jpg')
+        self.piano_template = cv2.cvtColor(cv2.imread(piano_img), cv2.COLOR_BGR2RGB)
+
         # other useful values
         self.in_sample_rate = self.seg.frame_rate
         self.num_samples = len(self.raw_samples)
@@ -128,7 +132,7 @@ class Decomposer:
 
                 if self.debug:
                     # bc dataframes are prettier than matrices
-                    helmholtz = self.freq_table.ix[90 - f_table_idx].Helmholtzname
+                    helmholtz = self.freq_table.iloc[89 - f_table_idx].Helmholtzname
                     notes_out = pd.DataFrame([
                         helmholtz.values,
                         detected_freqs,
@@ -176,10 +180,7 @@ class Decomposer:
             np.array image of colorized piano
 
         """
-        # init a fresh piano img
-        piano_img = os.path.join('assets', 'piano.jpg')
-        piano_template = cv2.cvtColor(cv2.imread(piano_img), cv2.COLOR_BGR2RGB)
-
+        piano_out = self.piano_template.copy()
         if f_table_idx is not None:
             amp_arr_nonzero /= np.max(amp_arr_nonzero)  # normalize vector [0, 1]
 
@@ -187,15 +188,15 @@ class Decomposer:
             for n in range(f_table_idx.shape[0]):
                 idx = f_table_idx[n]
                 loudness = amp_arr_nonzero[n]
-                freq_map = self.freq_table.ix[90 - idx]
-                if type(freq_map.points) is not list: continue  # handle nan cases
+                piano_loc_points = self.freq_table.iat[89 - idx, -1]
+                if type(piano_loc_points) is not list: continue  # handle nan cases
 
                 # color in detected note on keyboard img, stack onto output img
-                piano = piano_template.copy()
-                points = np.array(freq_map.points, dtype=np.int32)
+                piano = self.piano_template.copy()
+                points = np.array(piano_loc_points, dtype=np.int32)
                 cv2.fillPoly(piano, [points[:, ::-1]], [0, 255, 0])
-                piano_template = cv2.addWeighted(piano_template, 1 - loudness, piano, loudness, 0)
-        return piano_template
+                piano_out = cv2.addWeighted(piano_out, 1 - loudness, piano, loudness, 0)
+        return piano_out
 
     def _plot_spectrogram(self, amplitude_matrix, title=''):
         """ Plot our spectrograms. """
