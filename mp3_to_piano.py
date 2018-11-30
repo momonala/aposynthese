@@ -58,5 +58,5 @@ else:
 if not os.path.isdir('output'):
     os.mkdir('output')
 
-decomposer = Decomposer(song_file, plot=args.plot)
+decomposer = Decomposer(song_file, stop_time=args.max_time, plot=args.plot)
 decomposer.cvt_mp3_to_piano()
