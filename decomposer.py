@@ -34,9 +34,9 @@ class Decomposer:
         self.raw_samples = np.array(self.seg.seg.get_array_of_samples())
         self.freq_table = generate_frequency_table()
 
-        # init a fresh piano img
+        # init a fresh piano img (use HSV if not using addWeighted func in _generate_keyboard, else RGB)
         piano_img = os.path.join('assets', 'piano.jpg')
-        self.piano_template = cv2.cvtColor(cv2.imread(piano_img), cv2.COLOR_BGR2RGB)
+        self.piano_template = cv2.cvtColor(cv2.imread(piano_img), cv2.COLOR_BGR2HSV)
 
         # other useful values
         self.in_sample_rate = self.seg.frame_rate
@@ -138,7 +138,7 @@ class Decomposer:
 
                 if self.debug:
                     # bc dataframes are prettier than matrices
-                    helmholtz = self.freq_table.ix[90 - f_table_idx].Helmholtzname
+                    helmholtz = self.freq_table.iat[90 - f_table_idx].Helmholtzname
                     notes_out = pd.DataFrame([
                         helmholtz.values,
                         detected_freqs,
@@ -153,7 +153,7 @@ class Decomposer:
 
         # init keyboard frames with predefined shape - will eventuall turn to video
         keyboard_img_size = [self.t_final] + [232, 1910, 3]
-        self.keyboard_frames = np.empty(keyboard_img_size)
+        self.keyboard_frames = np.empty(keyboard_img_size, dtype=np.uint8)
 
         # init dom freqs matrix, iterate through time, find peaks and threshold
         self.dominant_amplitudes = self.amplitudes.copy()
@@ -173,7 +173,7 @@ class Decomposer:
 
         self._plot_spectrogram(self.dominant_amplitudes, 'Filtered Spectrogram of Dominant Frequencies')
 
-    def _generate_keyboard(self, f_table_idx, amp_arr_nonzero):
+    def _generate_keyboard(self, f_table_idx, amp_arr_nonzero, loudness_thresh=0.25):
         """
         Iterate through notes found in sample and draw on keyboard image.
         Intensity of color depends on loudness (decibels).
@@ -182,6 +182,7 @@ class Decomposer:
         Args:
             f_table_idx (np.ndarray): indices of active notes in self.freq_table.
             amp_arr_nonzero (np.ndarray): vector containing raw amplitude values
+            loudness_thresh (float): [0, 1] that loudness value must exceed to be drawn to keyboard
         Returns:
             np.array image of colorized piano
 
@@ -189,20 +190,24 @@ class Decomposer:
         piano_out = self.piano_template.copy()
         if f_table_idx is not None:
             amp_arr_nonzero /= np.max(amp_arr_nonzero)  # normalize vector [0, 1]
-
-            # iterate through detected notes, extract location on keyboard
+            # iterate through detected notes, extract location on keyboard if loudness thresh met
             for n in range(f_table_idx.shape[0]):
                 idx = f_table_idx[n]
                 loudness = amp_arr_nonzero[n]
-                piano_loc_points = self.freq_table.iat[89 - idx, -1]
-                if type(piano_loc_points) is not list: continue  # handle nan cases
 
-                # color in detected note on keyboard img, stack onto output img
-                piano = self.piano_template.copy()
-                points = np.array(piano_loc_points, dtype=np.int32)
-                cv2.fillPoly(piano, [points[:, ::-1]], [0, 255, 0])
-                piano_out = cv2.addWeighted(piano_out, 1 - loudness, piano, loudness, 0)
-        return piano_out
+                if loudness > loudness_thresh:
+                    piano_loc_points = self.freq_table.iat[89 - idx, -1]
+                    continue if type(piano_loc_points) is not list else pass  # handle nan case
+
+                    # color in detected note on keyboard img, stack onto output img
+                    points = np.array(piano_loc_points, dtype=np.int32)
+                    cv2.fillPoly(piano_out, [points[:, ::-1]], [60, 255 * loudness, 255]) 
+        return cv2.cvtColor(piano_out, cv2.COLOR_HSV2RGB)
+# old method...
+                        # piano = self.piano_template.copy()
+                    # cv2.fillPoly(piano, [points[:, ::-1]], [0, 255, 0])
+                    # piano_out = cv2.addWeighted(piano_out, 1 - loudness, piano, loudness, 0)
+        # return piano_out
 
     def _plot_spectrogram(self, amplitude_matrix, title=''):
         """ Plot our spectrograms. """

@@ -39,10 +39,10 @@ if args.youtube:
     song_file = os.path.join('input', mp3_name)
 
     try:
-        os.remove(raw_name)  # clean up
         if not os.path.isdir('input'): os.mkdir('input')
         if not os.path.isdir('output'): os.mkdir('output')
         os.rename(mp3_name, song_file)
+        os.remove(mp3_name)  # clean up
     except FileExistsError:
         pass
 
