@@ -197,17 +197,17 @@ class Decomposer:
 
                 if loudness > loudness_thresh:
                     piano_loc_points = self.freq_table.iat[89 - idx, -1]
-                    continue if type(piano_loc_points) is not list else pass  # handle nan case
+                    if type(piano_loc_points) is not list: continue  # handle nan case
 
                     # color in detected note on keyboard img, stack onto output img
                     points = np.array(piano_loc_points, dtype=np.int32)
                     cv2.fillPoly(piano_out, [points[:, ::-1]], [60, 255 * loudness, 255]) 
         return cv2.cvtColor(piano_out, cv2.COLOR_HSV2RGB)
 # old method...
-                        # piano = self.piano_template.copy()
-                    # cv2.fillPoly(piano, [points[:, ::-1]], [0, 255, 0])
-                    # piano_out = cv2.addWeighted(piano_out, 1 - loudness, piano, loudness, 0)
-        # return piano_out
+#                         piano = self.piano_template.copy()
+#                     cv2.fillPoly(piano, [points[:, ::-1]], [0, 255, 0])
+#                     piano_out = cv2.addWeighted(piano_out, 1 - loudness, piano, loudness, 0)
+#         return piano_out
 
     def _plot_spectrogram(self, amplitude_matrix, title=''):
         """ Plot our spectrograms. """

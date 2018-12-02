@@ -39,8 +39,8 @@ if args.youtube:
     song_file = os.path.join('input', mp3_name)
 
     try:
-        if not os.path.isdir('input'): os.mkdir('input')
-        if not os.path.isdir('output'): os.mkdir('output')
+        os.mkdir('input') if not os.path.isdir('input') else None
+        os.mkdir('output') if not os.path.isdir('output') else None
         os.rename(mp3_name, song_file)
         os.remove(mp3_name)  # clean up
     except FileExistsError:
@@ -56,9 +56,6 @@ elif args.song:
 else:
     logger.error('Must choose one option: --song or --youtube')
     sys.exit()
-
-if not os.path.isdir('output'):
-    os.mkdir('output')
 
 decomposer = Decomposer(song_file, stop_time=args.max_time, plot=args.plot)
 decomposer.cvt_mp3_to_piano()
