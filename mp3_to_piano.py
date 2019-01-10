@@ -42,7 +42,7 @@ if args.youtube:
         os.mkdir('input') if not os.path.isdir('input') else None
         os.mkdir('output') if not os.path.isdir('output') else None
         os.rename(mp3_name, song_file)
-        os.remove(mp3_name)  # clean up
+        os.remove(raw_name)  # clean up
     except FileExistsError:
         pass
 

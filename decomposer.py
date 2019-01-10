@@ -14,7 +14,7 @@ from tqdm import tqdm
 from signal_process_utils import generate_frequency_table
 
 
-class Decomposer:
+class Decomposer(object):
 
     def __init__(self, mp3_file, plot=False, stop_time=None, debug=False):
         """
@@ -234,10 +234,11 @@ class Decomposer:
         # use temp audio to deal with moviepy bug
         outfile = self.mp3_file.replace('input', 'output')
         outfile = outfile.replace('mp3', 'mp4')
-        out.write_videofile(outfile,
-                            fps=30,
-                            temp_audiofile="temp-audio.m4a",
-                            remove_temp=True,
-                            codec="libx264",
-                            audio_codec="aac"
-                            )
+        out.write_videofile(
+            outfile,
+            fps=30,
+            temp_audiofile="temp-audio.m4a",
+            remove_temp=True,
+            codec="libx264",
+            audio_codec="aac"
+        )
