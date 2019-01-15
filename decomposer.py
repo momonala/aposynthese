@@ -1,17 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import logging
 from functools import partial
+import os
 
 import audiosegment
 import cv2
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from moviepy.editor import *
+from moviepy.editor import ImageClip, AudioFileClip, concatenate_videoclips
 from scipy.signal import find_peaks
 from tqdm import tqdm
 
 from signal_process_utils import generate_frequency_table
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class Decomposer(object):
@@ -39,10 +43,8 @@ class Decomposer(object):
         self.piano_template = cv2.cvtColor(cv2.imread(piano_img), cv2.COLOR_BGR2HSV)
 
         # other useful values
-        self.in_sample_rate = self.seg.frame_rate
-        self.num_samples = len(self.raw_samples)
-        self.ms = len(self.seg)
         self.max_freq = 4186  # hz of high c (key 88)
+        self.fps_out = 30  # fps of output video
 
         # useful transform for better plotting visualization of spectrogram
         self._log_amps = lambda x: 10 * np.log10(x + 1e-9)
@@ -104,8 +106,8 @@ class Decomposer(object):
 
         def _get_peaks_and_threshold(t):
             """ Given a time(t), extract the dominant frequencies in the amplitude
-            matrix using argrelextrema, and threshold all other values to zero the
-            values a new matrix, self.dominant_amplitudes. Thresholding performed by
+            matrix using argrelextrema, and threshold all other values to zero.
+            Store in a new matrix, self.dominant_amplitudes. Thresholding performed by
             selecting the inverse indices of the detected peaks.
             """
 
@@ -151,7 +153,7 @@ class Decomposer(object):
                 return f_table_idx, amp_arr_nonzero
             return None, None
 
-        # init keyboard frames with predefined shape - will eventuall turn to video
+        # init keyboard frames with predefined shape - will eventually turn into video
         keyboard_img_size = [self.t_final] + [232, 1910, 3]
         self.keyboard_frames = np.empty(keyboard_img_size, dtype=np.uint8)
 
@@ -159,7 +161,7 @@ class Decomposer(object):
         self.dominant_amplitudes = self.amplitudes.copy()
         for t in tqdm(range(self.t_final)):
             _get_peaks_and_threshold(t)
-        print('[Decomposer] >>>> Found dominant frequencies.')
+        logger.info('[Decomposer] >>>> Found dominant frequencies.')
 
         # median filter along time axis to get rid of white noise
         self.dominant_amplitudes = np.apply_along_axis(self._median_filter, 1, self.dominant_amplitudes)
@@ -169,7 +171,7 @@ class Decomposer(object):
             t_note_data = _get_notes(t)
             keyboard = self._generate_keyboard(*t_note_data)
             self.keyboard_frames[t, ...] = keyboard
-        print('[Decomposer] >>>> Mapped frequencies to notes and generated keyboard visualizations.')
+        logger.info('[Decomposer] >>>> Mapped frequencies to notes and generated keyboard visualizations.')
 
         self._plot_spectrogram(self.dominant_amplitudes, 'Filtered Spectrogram of Dominant Frequencies')
 
@@ -203,7 +205,8 @@ class Decomposer(object):
                     points = np.array(piano_loc_points, dtype=np.int32)
                     cv2.fillPoly(piano_out, [points[:, ::-1]], [60, 255 * loudness, 255]) 
         return cv2.cvtColor(piano_out, cv2.COLOR_HSV2RGB)
-# old method...
+
+# old method... uglier but faster...
 #                         piano = self.piano_template.copy()
 #                     cv2.fillPoly(piano, [points[:, ::-1]], [0, 255, 0])
 #                     piano_out = cv2.addWeighted(piano_out, 1 - loudness, piano, loudness, 0)
@@ -212,6 +215,7 @@ class Decomposer(object):
     def _plot_spectrogram(self, amplitude_matrix, title=''):
         """ Plot our spectrograms. """
         if self.plot:
+            import matplotlib.pyplot as plt
             plt.figure(figsize=(20, 6))
             plt.pcolormesh(self.times, self.freqs, self._log_amps(amplitude_matrix))
             plt.xlabel("Time in Seconds")
@@ -228,6 +232,8 @@ class Decomposer(object):
             piano_img = self.keyboard_frames[i, ...]
             single_frame = ImageClip(piano_img).set_duration(duration)
             frames.append(single_frame)
+        logger.info('>>>> Created still frames of keyboard.')
+
         out = concatenate_videoclips(frames, method="compose")
         out = out.set_audio(AudioFileClip(self.mp3_file))
 
@@ -236,7 +242,7 @@ class Decomposer(object):
         outfile = outfile.replace('mp3', 'mp4')
         out.write_videofile(
             outfile,
-            fps=30,
+            fps=self.fps_out,
             temp_audiofile="temp-audio.m4a",
             remove_temp=True,
             codec="libx264",
