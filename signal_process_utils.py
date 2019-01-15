@@ -10,19 +10,8 @@ def generate_frequency_table():
 
     # dataframe to map notes, frequencies, and keyboard keys
     freqs = pd.read_csv(os.path.join('assets', 'freqs.csv'))
-    freqs = freqs.iloc[1:, :4]
-    freqs['Helmholtzname'] = freqs.Helmholtzname.apply(lambda x: x.replace('′', ''))
-    freqs['Helmholtzname'] = freqs.Helmholtzname.apply(lambda x: x.replace('͵', ''))
-    freqs['Helmholtzname'] = freqs.Helmholtzname.apply(lambda x: x.split(' ')[0])
-    freqs['Helmholtzname'] = freqs.Helmholtzname.apply(lambda x: x.upper())
-    freqs['Frequency (Hz)'] = freqs['Frequency (Hz)'].astype(np.float16)
-    freqs['Keynumber'] = freqs['Keynumber'].astype(np.uint8)
-    freqs = freqs[freqs.Keynumber <= 88]
-    freqs = freqs.sort_values('Keynumber', ascending=False)
-    freqs.index = range(1, 89)
 
     # generate keypoints of octave 1 piano keys localized via `utils/localize_keyboard_mappings.py`
-
     ab = np.array([[8, 246], [162, 247], [162, 275], [8, 276]])
     a = np.array([[8, 276], [162, 275], [162, 262], [224, 262], [224, 298], [162, 297], [162, 283]])
     bb = np.array([[8, 28], [162, 29], [162, 57], [8, 58]])
