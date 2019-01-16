@@ -232,7 +232,7 @@ class Decomposer(object):
             piano_img = self.keyboard_frames[i, ...]
             single_frame = ImageClip(piano_img).set_duration(duration)
             frames.append(single_frame)
-        logger.info('>>>> Created still frames of keyboard.')
+        logger.info('[Decomposer] >>>> Created still frames of keyboard.')
 
         out = concatenate_videoclips(frames, method="compose")
         out = out.set_audio(AudioFileClip(self.mp3_file))
