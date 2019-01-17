@@ -14,6 +14,36 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+class DecomposerError(Exception):
+    def __init__(self, message=''):
+        self.message = message
+
+
+def _download_youtube_vid(youtube_url):
+    """
+        Download Youtube video.
+        Args:
+            youtube_url (str): youtube video url
+        Returns:
+            raw_name (str): the youtube id hash only
+        """
+    youtube_id = youtube_url.split('=')[-1]
+    options = {
+        # todo youtube-dl issue, cant download only audio, getting codec issue
+        'outtmpl': '%(id)s',
+        'format': 'bestaudio/best',
+    }
+    with youtube_dl.YoutubeDL(options) as ydl:
+        try:
+            ydl.download([youtube_url])
+            logger.info(f'[PIPELINE] >>>> Sucessfully downloaded video file {youtube_id}.')
+        except youtube_dl.utils.DownloadError:
+            msg = f'{youtube_id} is not a valid YouTube ID.'
+            logger.error(f'[PIPELINE] >>>> {msg}')
+            raise DecomposerError(msg)
+    return youtube_id
+
+
 def decomposer_pipeline(arg_dict):
     """
     Run the decomposer pipeline. Includes searching for song and/or downloading Youtube video.
@@ -23,23 +53,15 @@ def decomposer_pipeline(arg_dict):
     """
     # download the song from youtube as video, cvt to mp3, cleanup
     song = arg_dict.get('song', None)
-    youtube = arg_dict.get('youtube', None)
+    youtube_url = arg_dict.get('youtube', None)
     max_time = arg_dict.get('max_time', None)
     plot = arg_dict.get('plot', False)
 
-    if youtube:
-        raw_name = youtube.split('=')[-1]
-        options = {
-            # todo youtube-dl issue, cant download only audio, getting codec issue
-            'outtmpl': '%(id)s',
-            'format': 'bestaudio/best',
-        }
-        with youtube_dl.YoutubeDL(options) as ydl:
-            ydl.download([youtube])
-            logger.info(f'[PIPELINE] >>>> Sucessfully downloaded video file {raw_name}.')
+    if youtube_url:
+        youtube_id = _download_youtube_vid(youtube_url)
 
-        mp3_name = raw_name + '.mp3'
-        AudioSegment.from_file(raw_name).export(mp3_name, format="mp3")
+        mp3_name = youtube_id + '.mp3'
+        AudioSegment.from_file(youtube_id).export(mp3_name, format="mp3")
         logger.info(f'[PIPELINE] >>>> Sucessfully converted video file to mp3: {mp3_name}.')
         song_file = os.path.join('input', mp3_name)
 
@@ -47,7 +69,7 @@ def decomposer_pipeline(arg_dict):
             os.mkdir('input') if not os.path.isdir('input') else None
             os.mkdir('output') if not os.path.isdir('output') else None
             os.rename(mp3_name, song_file)
-            os.remove(raw_name)  # clean up
+            os.remove(youtube_id)  # clean up
         except FileExistsError:
             pass
 

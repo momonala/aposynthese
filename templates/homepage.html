@@ -1,42 +1,60 @@
 <!DOCTYPE html>
 <html>	
 
-<!--Background Image-->
-<style>
-body {
-    background: url("static/piano.png");
-    background-size: 1000px 1000px
-    background-repeat: no-repeat;
-    padding-top: 10px;
-}
-#serial{
-    height: 34px;
-    width: 240px;
-    color:#757575;
-    opacity: 0.7;
-}
-</style>
+    <!--Background Image-->
+    <style>
+    body {
+        background: url("static/piano.png");
+        background-size: 1000px 1000px
+        background-repeat: no-repeat;
+        padding-top: 10px;
+    }
+    #serial{
+        height: 34px;
+        width: 240px;
+        color:#757575;
+        opacity: 0.7;
+    }
+    </style>
 
-<!--'Foreground Stuff' -->
-<center>
-	<!--<a href="https://github.com/momonala/aposynthese/" >-->
-		<!--<img src="static/logo.png" height="200" />-->
-	<!--</a>-->
-	<h1 style="font-family: Helvetica;color:white;font-weight: 100;"> Aposynthese </h1>
-	<h2 style="font-family: Helvetica;color:white;font-weight: 20;"> Perfect Pitch for Anyone. </h2>
-</center>
+    <!--'Foreground Stuff' -->
+    <center>
+        <!--<a href="https://github.com/momonala/aposynthese/" >-->
+            <!--<img src="static/logo.png" height="200" />-->
+        <!--</a>-->
+        <h1 style="font-family: Helvetica;color:white;font-weight: 100;"> Aposynthese </h1>
+        <h2 style="font-family: Helvetica;color:white;font-weight: 20;"> Perfect Pitch for Anyone. </h2>
+    </center>
 
 
-<center>
-	<form method="POST" action="handle_data" >
-		<input id="yt_link" type="text : " name='yt_link' placeholder="enter a youtube link" onfocus="if (this.value=='Serial #') this.value='';"/>
-        <button type="submit" class="btn btn-default" style="font-family: Helvetica;" >
-        go
-        </button>
-	</form>
-</center>
+    <center>
+        <form method="POST" action="handle_data" >
+            <input id="yt_link" type="text" name='yt_link' placeholder="enter a youtube link" onfocus="if (this.value=='enter a youtube link') this.value='';"/>
+            <button type="submit" class="btn btn-default" style="font-family: Helvetica;" >
+            go
+            </button>
+        </form>
+    </center>
 
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">-->
+
+    <body>
+        <div class="container" style="min-height:100% width:80%">
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-warning alert-dismissible" role="alert">
+              <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
+                {{message}}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        {% block body %}{% endblock %}
+        </div>
+        <!--<script src="//code.jquery.com/jquery-1.11.1.min.js"></script>-->
+        <!--<script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>-->
+    </body>
+
 </html>	
-
-
