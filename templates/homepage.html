@@ -5,7 +5,7 @@
     <style>
     body {
         background: url("static/piano.png");
-        background-size: 1000px 1000px
+        background-size: 1920px 1080px
         background-repeat: no-repeat;
         padding-top: 10px;
     }
@@ -19,14 +19,11 @@
 
     <!--'Foreground Stuff' -->
     <center>
-        <!--<a href="https://github.com/momonala/aposynthese/" >-->
-            <!--<img src="static/logo.png" height="200" />-->
-        <!--</a>-->
         <h1 style="font-family: Helvetica;color:white;font-weight: 100;"> Aposynthese </h1>
         <h2 style="font-family: Helvetica;color:white;font-weight: 20;"> Perfect Pitch for Anyone. </h2>
     </center>
 
-
+    <!--'Search Bar' -->
     <center>
         <form method="POST" action="handle_data" >
             <input id="yt_link" type="text" name='yt_link' placeholder="enter a youtube link" onfocus="if (this.value=='enter a youtube link') this.value='';"/>
@@ -35,9 +32,9 @@
             </button>
         </form>
     </center>
-
     <!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">-->
 
+    <!--Error Handling-->
     <body>
         <div class="container" style="min-height:100% width:80%">
         {% with messages = get_flashed_messages() %}
