@@ -1,12 +1,14 @@
 # Aposynthese
 
-A tool to give anyone perfect pitch. 
+Perfect Pitch for Anyone. 
 
-Convert mp3 files into piano visualiztions by decomposing its underlying constituent frequencies. 
+A tool to convert mp3 files into piano visualiztions by decomposing the song's underlying constituent frequencies. 
 
 ---
 
 # Usage
+
+## Run with Python locally:
 `python mp3_to_piano.py [OPTIONS]`
 
 ### Options:
@@ -17,6 +19,11 @@ Convert mp3 files into piano visualiztions by decomposing its underlying constit
 -m, --max_time  Time to process audio file until                  default=None, type=int
 -p, --plot      Whether to plot the spectrograms for debugging    default=False, type=bool
 ```
+
+## Run with Flask on a Development Server
+`python server.py`
+
+visit `http://0.0.0.0:8000` and enter a valid YouTube URL.
 
 # Installation
 `pip install -r requirements.txt`
@@ -47,8 +54,16 @@ If this pipeline is applied across all time points, we can generate a video like
 
 ---
 
-# To Do
-- test with more complex songs
+# To Do Soon
+- figure out video encoding issue for web streaming
+    - can this be solved with flask vs. node.js?
+- use ffmpeg directly for video creation - memory optimization
+- threshold peak detection (dynamically?)
+- gif and youtube video
+
+# To Do Eventually
+- write tests
+- isolate instrument tracks and allow user to select what to decompose
 - write 'how it works' blog post
 - create better GUI than using OpenCV
 - create guitar-hero like visualizaions for seeing future notes
