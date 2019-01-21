@@ -2,7 +2,10 @@
 
 Perfect Pitch for Anyone. 
 
-A tool to convert mp3 files into piano visualiztions by decomposing the song's underlying constituent frequencies. 
+A tool to convert mp3 files into piano visualizations by decomposing the song's underlying constituent frequencies. 
+
+
+[![output](assets/sample_output.gif)](https://youtu.be/Gx8MmG-gvlk "output")
 
 ---
 
@@ -34,9 +37,7 @@ visit `http://0.0.0.0:8000` and enter a valid YouTube URL.
 # How it Works 
 Sound is a time signal: in the physical world, sound is how we interpret pressurve waves propogating through air over time. Digitially, this gets translated into an array, where the values represent the amplitude of the wave and the index is the time point. 
 
-<center>
-    <img src="https://upload.wikimedia.org/wikipedia/commons/6/68/The_Elements_of_Sound_jpg.jpg" width="400" />
-</center>
+<img src="https://upload.wikimedia.org/wikipedia/commons/6/68/The_Elements_of_Sound_jpg.jpg" width="400" />
 
 If we want to extract the music notes from a song file, we need to know which frequencies are resonating at a each time point. [The Fourier Transform](https://en.wikipedia.org/wiki/Fourier_transform) is the mathematical operation used to translate a time signal into a frequency signal. [Scipy's spectrogram](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.spectrogram.html) method allows us to generate a high resolution plot like the one shown below for a sound file. The x-axis is time, the y-axis is frequency, and the color (or z-axis) is the relative intensity of that frequency/time point. Yellow is a higher intensity while blue is lower. The yellow spikes/lines therefore, are notes being played.
 
@@ -50,7 +51,7 @@ After applying peak detection at each time vector, we map the dominant frequenci
 
 If this pipeline is applied across all time points, we can generate a video like this! Click the gif :)
 
-[![TODO FINAL OUTPUT HERE](PIANO OUTUPT GIF HERE)](http://www.youtube.com/watch?v=YOUTUBE_VIDEO_ID_HERE "test")
+[![output](assets/sample_output.gif)](https://youtu.be/Gx8MmG-gvlk "output")
 
 ---
 
