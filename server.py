@@ -49,6 +49,5 @@ def serve_video(yt_id):
 if __name__ == '__main__':
 	app.run(
 		debug=True,
-		host='192.168.10.97',
 		port=8000
 	)

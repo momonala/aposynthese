@@ -13,7 +13,8 @@ from decomposer import Decomposer
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-existing_files = [x.strip('.mp4').strip('output/') for x in glob('output/*mp4')]
+existing_inputs = [x.strip('.mp3').strip('input/') for x in glob('input/*mp3')]
+existing_ouputs = [x.strip('.mp4').strip('output/') for x in glob('output/*mp4')]
 
 
 class DecomposerError(Exception):
@@ -48,9 +49,15 @@ def _download_youtube_vid(youtube_url, youtube_id):
             ydl.download([youtube_url])
             logger.info(f'[PIPELINE] >>>> Sucessfully downloaded video file {youtube_id}.')
 
-            mp3_name = youtube_id + '.mp3'
-            AudioSegment.from_file(youtube_id).export(mp3_name, format="mp3")
-            logger.info(f'[PIPELINE] >>>> Sucessfully converted video file to mp3: {mp3_name}.')
+            try:
+                mp3_name = youtube_id + '.mp3'
+                AudioSegment.from_file(youtube_id).export(mp3_name, format="mp3")
+                logger.info(f'[PIPELINE] >>>> Sucessfully converted video file to mp3: {mp3_name}.')
+            except FileNotFoundError:
+                msg = f'[PIPELINE] >>>> Youtube download and/or mp3 conversion failed for [{mp3_name}]. ' \
+                      f'Double check that URL is valid.'
+                logger.error(msg)
+                raise DecomposerError(msg)
 
             song_file = os.path.join('input', mp3_name)
             os.rename(mp3_name, song_file)
@@ -61,6 +68,45 @@ def _download_youtube_vid(youtube_url, youtube_id):
             msg = f'{youtube_id} is not a valid YouTube ID.'
             logger.error(f'[PIPELINE] >>>> {msg}')
             raise DecomposerError(msg)
+
+
+def _handle_youtube_option(youtube_url):
+    """ Logic to handle option if input media is a YouTube video."""
+    if 'https://www.youtube.com/watch?v=' not in youtube_url:
+        msg = f'{youtube_url} is not a valid YouTube ID'
+        logger.error(f'PIPELINE >>>> {msg}')
+        raise DecomposerError(msg)
+    youtube_id = youtube_url.split('=')[-1]
+
+    # Download the song if needed
+    if youtube_id not in existing_inputs:
+        logger.info(f'PIPELINE >>>> Song not found in input database. Downloading {youtube_id}')
+        _download_youtube_vid(youtube_url, youtube_id)
+
+    # Decompose if not done already
+    if youtube_id not in existing_ouputs:
+        logger.info(f'PIPELINE >>>> Song not found in output database. Decomposing {youtube_id}')
+        return os.path.join('input', youtube_id)
+    else:
+        logger.info(f'PIPELINE >>>> {youtube_id} exists in output database. Use cached.')
+        return None
+
+
+def _handle_local_song_option(song):
+    """ Logic to handle option if input media is a predownloaded mp3. """
+    song = song.strip('.mp3')
+    if song not in existing_inputs:
+        logger.error(f'[PIPELINE] >>>> Song {song} does not exist in input directory. Exiting.')
+        return None
+    logger.info(f'[PIPELINE] >>>> Found local video file {song}.')
+
+    # Decompose if not done already
+    if song not in existing_ouputs:
+        logger.info(f'PIPELINE >>>> Song not found in output database. Decomposing {song}')
+        return os.path.join('input', song+'.mp3')
+    else:
+        logger.info(f'PIPELINE >>>> {song} exists in output database. Use cached.')
+        return None
 
 
 def decomposer_pipeline(arg_dict):
@@ -78,36 +124,19 @@ def decomposer_pipeline(arg_dict):
 
     setup_dirs()
 
+    # handle downloading and setup based on media input type
     if youtube_url:
-        if 'https://www.youtube.com/watch?v=' not in youtube_url:
-            msg = f'{youtube_url} is not a valid YouTube ID'
-            logger.error(f'PIPELINE >>>> {msg}')
-            return None
-
-        youtube_id = youtube_url.split('=')[-1]
-        if youtube_id not in existing_files:
-            logger.info(f'PIPELINE >>>> Song not found in database. Decomposing {youtube_id}')
-            try:
-                song_file = _download_youtube_vid(youtube_url, youtube_id)
-            except DecomposerError:
-                return None
-        else:
-            logger.info(f'PIPELINE >>>> {youtube_id} exists in database.')
-            song_file = os.path.join('input', youtube_id+'.mp3')
-
+        input_song = _handle_youtube_option(youtube_url)
     elif song:
-        song_file = os.path.join('input', song)
-        if not os.path.isfile(song_file):
-            logger.error(f'[PIPELINE] >>>> Song {song} does not exist in input directory. Exiting.')
-            return None
-        logger.info(f'[PIPELINE] >>>> Found local video file {song_file}.')
-
+        input_song = _handle_local_song_option(song)
     else:
-        logger.error('[PIPELINE] >>>> Must choose one option: --song or --youtube')
-        return None
+        msg = '[PIPELINE] >>>> Must choose one option: --song or --youtube'
+        logger.error(msg)
+        raise DecomposerError(msg)
 
-    decomposer = Decomposer(song_file, stop_time=max_time, plot=plot)
-    decomposer.cvt_mp3_to_piano()
+    # Decompose the song if needed
+    if input_song:
+        Decomposer(input_song, stop_time=max_time, plot=plot).cvt_mp3_to_piano()
 
 
 if __name__ == '__main__':
