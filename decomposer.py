@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import logging
-from functools import partial
 import os
+from functools import partial
 
 import audiosegment
 import cv2
+import imageio
 import numpy as np
 import pandas as pd
-from moviepy.editor import ImageClip, AudioFileClip, concatenate_videoclips
+from moviepy.editor import AudioFileClip, VideoFileClip
 from scipy.signal import find_peaks
 from tqdm import tqdm
 
@@ -203,14 +204,8 @@ class Decomposer(object):
 
                     # color in detected note on keyboard img, stack onto output img
                     points = np.array(piano_loc_points, dtype=np.int32)
-                    cv2.fillPoly(piano_out, [points[:, ::-1]], [60, 255 * loudness, 255]) 
+                    cv2.fillPoly(piano_out, [points[:, ::-1]], [60, 255 * loudness, 255])
         return cv2.cvtColor(piano_out, cv2.COLOR_HSV2RGB)
-
-# old method... uglier but faster...
-#                         piano = self.piano_template.copy()
-#                     cv2.fillPoly(piano, [points[:, ::-1]], [0, 255, 0])
-#                     piano_out = cv2.addWeighted(piano_out, 1 - loudness, piano, loudness, 0)
-#         return piano_out
 
     def _plot_spectrogram(self, amplitude_matrix, title=''):
         """ Plot our spectrograms. """
@@ -225,26 +220,21 @@ class Decomposer(object):
 
     def _build_movie(self):
         """ Concatenate self.keyboard_frames images into video file, add back original music."""
-        frames = []
-        duration = self.times[1] - self.times[0]
+        fps = 1. / (self.times[1] - self.times[0])
 
-        for i in tqdm(range(self.keyboard_frames.shape[0])):
-            piano_img = self.keyboard_frames[i, ...]
-            single_frame = ImageClip(piano_img).set_duration(duration)
-            frames.append(single_frame)
-        logger.info('[Decomposer] >>>> Created still frames of keyboard.')
+        imageio.mimwrite('tmp.mp4', self.keyboard_frames, fps=fps)
 
-        out = concatenate_videoclips(frames, method="compose")
-        out = out.set_audio(AudioFileClip(self.mp3_file))
+        outname = self.mp3_file.replace('input', 'output')
+        outname = outname.replace('mp3', 'mp4')
 
-        # use temp audio to deal with moviepy bug
-        outfile = self.mp3_file.replace('input', 'output')
-        outfile = outfile.replace('mp3', 'mp4')
-        out.write_videofile(
-            outfile,
+        output = VideoFileClip('tmp.mp4')
+        output = output.set_audio(AudioFileClip(self.mp3_file))
+        output.write_videofile(
+            outname,
             fps=self.fps_out,
             temp_audiofile="temp-audio.m4a",
             remove_temp=True,
             codec="libx264",
             audio_codec="aac"
         )
+        os.remove('tmp.mp4')

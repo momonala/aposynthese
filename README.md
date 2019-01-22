@@ -58,9 +58,7 @@ If this pipeline is applied across all time points, we can generate a video like
 # To Do Soon
 - figure out video encoding issue for web streaming
     - can this be solved with flask vs. node.js?
-- use ffmpeg directly for video creation - memory optimization
 - threshold peak detection (dynamically?)
-- gif and youtube video
 
 # To Do Eventually
 - write tests

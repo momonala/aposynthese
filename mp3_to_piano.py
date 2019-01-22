@@ -74,21 +74,21 @@ def _handle_youtube_option(youtube_url):
     """ Logic to handle option if input media is a YouTube video."""
     if 'https://www.youtube.com/watch?v=' not in youtube_url:
         msg = f'{youtube_url} is not a valid YouTube ID'
-        logger.error(f'PIPELINE >>>> {msg}')
+        logger.error(f'[PIPELINE] >>>> {msg}')
         raise DecomposerError(msg)
     youtube_id = youtube_url.split('=')[-1]
 
     # Download the song if needed
     if youtube_id not in existing_inputs:
-        logger.info(f'PIPELINE >>>> Song not found in input database. Downloading {youtube_id}')
+        logger.info(f'[PIPELINE] >>>> Song not found in input database. Downloading {youtube_id}')
         _download_youtube_vid(youtube_url, youtube_id)
 
     # Decompose if not done already
     if youtube_id not in existing_ouputs:
-        logger.info(f'PIPELINE >>>> Song not found in output database. Decomposing {youtube_id}')
-        return os.path.join('input', youtube_id)
+        logger.info(f'[PIPELINE] >>>> Song not found in output database. Decomposing {youtube_id}')
+        return os.path.join('input', youtube_id+'.mp3')
     else:
-        logger.info(f'PIPELINE >>>> {youtube_id} exists in output database. Use cached.')
+        logger.info(f'[PIPELINE] >>>> {youtube_id} exists in output database. Use cached.')
         return None
 
 
@@ -102,10 +102,10 @@ def _handle_local_song_option(song):
 
     # Decompose if not done already
     if song not in existing_ouputs:
-        logger.info(f'PIPELINE >>>> Song not found in output database. Decomposing {song}')
+        logger.info(f'[PIPELINE] >>>> Song not found in output database. Decomposing {song}')
         return os.path.join('input', song+'.mp3')
     else:
-        logger.info(f'PIPELINE >>>> {song} exists in output database. Use cached.')
+        logger.info(f'[PIPELINE] >>>> {song} exists in output database. Use cached.')
         return None
 
 
