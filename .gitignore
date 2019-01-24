@@ -1,8 +1,11 @@
 .DS_Store
 .idea/
-__pycache__/
 .ipynb_checkpoints/
+__pycache__/
 input/
 output/
 tmp/
+node_modules/
+
+package-lock.json
 *mp4
