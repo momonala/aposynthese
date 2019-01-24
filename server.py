@@ -1,13 +1,9 @@
-import logging
 import os
 
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for
 from flask import Response, make_response, send_file
 
 from mp3_to_piano import decomposer_pipeline
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 app.secret_key = 'lol'

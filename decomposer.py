@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import logging
 import os
+import sys
 from functools import partial
 
 import audiosegment
@@ -15,8 +16,13 @@ from tqdm import tqdm
 
 from signal_process_utils import generate_frequency_table
 
+# logger with special stream handling to output to stdout in Node.js
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+stdout_handler = logging.StreamHandler(sys.stdout)
+stdout_handler.setFormatter(logging.Formatter('%(asctime)s %(message)s'))
+stdout_handler.setLevel(logging.INFO)
+logger.addHandler(stdout_handler)
 
 
 class Decomposer(object):
@@ -206,13 +212,13 @@ class Decomposer(object):
                     poly = Image.new('RGBA', (1920, 240))
                     pdraw = ImageDraw.Draw(poly)
                     pdraw.polygon(piano_loc_points,
-                                  fill=(0,255,0, int(255*loudness)),
-                                  outline=(0,255,240,255))
+                                  fill=(0, 255, 0, int(255 * loudness)),
+                                  outline=(0, 255, 240, 255))
                     piano_out.paste(poly, mask=poly)
         return np.array(piano_out.convert('RGB'))
 
     def _plot_spectrogram(self, amplitude_matrix, title=''):
-        """ Plot our spectrograms. """
+        """ Plot our spectrograms for debugging. """
         if self.plot:
             import matplotlib.pyplot as plt
             plt.figure(figsize=(20, 6))

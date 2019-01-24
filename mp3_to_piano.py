@@ -3,6 +3,7 @@
 import argparse
 import logging
 import os
+import sys
 from glob import glob
 
 import youtube_dl
@@ -10,8 +11,13 @@ from pydub import AudioSegment
 
 from decomposer import Decomposer
 
+# logger with special stream handling to output to stdout in Node.js
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+stdout_handler = logging.StreamHandler(sys.stdout)
+stdout_handler.setFormatter(logging.Formatter('%(asctime)s %(message)s'))
+stdout_handler.setLevel(logging.INFO)
+logger.addHandler(stdout_handler)
 
 existing_inputs = [x.strip('.mp3').strip('input/') for x in glob('input/*mp3')]
 existing_ouputs = [x.strip('.mp4').strip('output/') for x in glob('output/*mp4')]
@@ -65,7 +71,7 @@ def _download_youtube_vid(youtube_url, youtube_id):
             return song_file
 
         except youtube_dl.utils.DownloadError:
-            msg = f'{youtube_id} is not a valid YouTube ID.'
+            msg = f'{youtube_url} is not a valid YouTube URL.'
             logger.error(f'[PIPELINE] >>>> {msg}')
             raise DecomposerError(msg)
 
@@ -73,7 +79,7 @@ def _download_youtube_vid(youtube_url, youtube_id):
 def _handle_youtube_option(youtube_url):
     """ Logic to handle option if input media is a YouTube video."""
     if 'https://www.youtube.com/watch?v=' not in youtube_url:
-        msg = f'{youtube_url} is not a valid YouTube ID'
+        msg = f'{youtube_url} is not a valid YouTube URL'
         logger.error(f'[PIPELINE] >>>> {msg}')
         raise DecomposerError(msg)
     youtube_id = youtube_url.split('=')[-1]
@@ -137,6 +143,7 @@ def decomposer_pipeline(arg_dict):
     # Decompose the song if needed
     if input_song:
         Decomposer(input_song, stop_time=max_time, plot=plot).cvt_mp3_to_piano()
+        logger.info(f'[PIPELINE] >>>> Song sucessfully decomposed!')
 
 
 if __name__ == '__main__':
