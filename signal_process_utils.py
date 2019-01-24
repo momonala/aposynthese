@@ -1,31 +1,100 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
-import numpy as np
 import pandas as pd
 
 
 def generate_frequency_table():
     """ Run some dataframe manipluation upon import to generate the note/frequency table mappings. """
 
-    # dataframe to map notes, frequencies, and keyboard keys
-    freqs = pd.read_csv(os.path.join('assets', 'freqs.csv'))
+    # generate keypoints of octave 1 piano keys
+    top = 12
+    bottom_black = 168
+    bottom_white = 229
+    octave = 256
 
-    # generate keypoints of octave 1 piano keys localized via `utils/localize_keyboard_mappings.py`
-    ab = np.array([[8, 246], [162, 247], [162, 275], [8, 276]])
-    a = np.array([[8, 276], [162, 275], [162, 262], [224, 262], [224, 298], [162, 297], [162, 283]])
-    bb = np.array([[8, 28], [162, 29], [162, 57], [8, 58]])
-    b = np.array([[8, 58], [162, 57], [162, 43], [224, 42], [224, 78], [8, 78]])
-    c = np.array([[8, 78], [224, 78], [224, 115], [162, 115], [162, 102], [8, 101]])
-    db = np.array([[8, 101], [162, 102], [162, 130], [8, 131]])
-    d = np.array([[8, 131], [162, 130], [162, 115], [224, 115], [224, 152], [162, 152], [162, 137]])
-    eb = np.array([[8, 131], [162, 137], [162, 165], [8, 166]])
-    e = np.array([[8, 166], [162, 165], [162, 152], [224, 152], [224, 188], [8, 188]])
-    f = np.array([[8, 188], [224, 188], [224, 224], [162, 223], [162, 210], [8, 209]])
-    gb = np.array([[8, 209], [162, 210], [162, 238], [8, 239]])
-    g = np.array([[8, 239], [162, 238], [162, 223], [224, 224], [224, 262], [162, 262], [162, 247], [8, 246]])
+    a = [(22, top),
+         (22, bottom_black),
+         (7, bottom_black),
+         (7, bottom_white),
+         (43, bottom_white),
+         (43, bottom_black),
+         (30, bottom_black),
+         (30, top)]
+
+    bb = [(30, top),
+          (30, bottom_black),
+          (58, bottom_black),
+          (58, top)]
+
+    b = [(58, top),
+         (58, bottom_black),
+         (43, bottom_black),
+         (43, bottom_white),
+         (79, bottom_white),
+         (79, top)]
+
+    c = [(79, top),
+         (79, bottom_white),
+         (116, bottom_white),
+         (116, bottom_black),
+         (102, bottom_black),
+         (102, top)]
+
+    db = [(102, top),
+          (102, bottom_black),
+          (131, bottom_black),
+          (131, top)]
+
+    d = [(131, top),
+         (131, bottom_black),
+         (116, bottom_black),
+         (116, bottom_white),
+         (153, bottom_white),
+         (153, bottom_black),
+         (138, bottom_black),
+         (138, top)]
+
+    eb = [(138, top),
+          (138, bottom_black),
+          (167, bottom_black),
+          (167, top)]
+
+    e = [(167, top),
+         (167, bottom_black),
+         (153, bottom_black),
+         (153, bottom_white),
+         (190, bottom_white),
+         (190, top)]
+
+    f = [(190, top),
+         (190, bottom_white),
+         (224, bottom_white),
+         (224, bottom_black),
+         (212, bottom_black),
+         (212, top)]
+
+    gb = [(212, top),
+          (212, bottom_black),
+          (240, bottom_black),
+          (240, top)]
+
+    g = [(240, top),
+         (240, bottom_black),
+         (224, bottom_black),
+         (224, bottom_white),
+         (262, bottom_white),
+         (262, bottom_black),
+         (248, bottom_black),
+         (248, top)]
+
+    ab = [(248, top),
+          (248, bottom_black),
+          (277, bottom_black),
+          (277, top)]
 
     keys = {
+        'a': a,
         'bb': bb,
         'b': b,
         'c': c,
@@ -37,19 +106,16 @@ def generate_frequency_table():
         'gb': gb,
         'g': g,
         'ab': ab,
-        'a': a,
     }
 
-    j = 1
-    octave = 255
+    # dataframe to map notes, frequencies, and keyboard keys
+    freqs = pd.read_csv(os.path.join('assets', 'freqs.csv'))
     df = pd.DataFrame(columns=['note', 'points'])
-    for i in range(0, 8):
-        for root, orig_key in keys.items():
-            key = orig_key.copy()
-            if root not in ['bb', 'b'] and i == 7:
-                continue
-            if i != 0:
-                key[:, 1] = key[:, 1] + octave * i
-            df.loc[88 - j] = [root + str(i), list(key)]
-            j += 1
+
+    c = 0
+    for i in range(8):
+        for note, points in keys.items():
+            points = [(j + octave * i, k) for j, k in points]
+            df.loc[88 - c] = [note + str(i), points]
+            c += 1
     return freqs.join(df)

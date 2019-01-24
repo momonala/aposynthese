@@ -64,5 +64,4 @@ If this pipeline is applied across all time points, we can generate a video like
 - write tests
 - isolate instrument tracks and allow user to select what to decompose
 - write 'how it works' blog post
-- create better GUI than using OpenCV
 - create guitar-hero like visualizaions for seeing future notes

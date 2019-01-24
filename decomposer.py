@@ -5,10 +5,10 @@ import os
 from functools import partial
 
 import audiosegment
-import cv2
 import imageio
 import numpy as np
 import pandas as pd
+from PIL import Image, ImageDraw
 from moviepy.editor import AudioFileClip, VideoFileClip
 from scipy.signal import find_peaks
 from tqdm import tqdm
@@ -41,7 +41,7 @@ class Decomposer(object):
 
         # init a fresh piano img (use HSV if not using addWeighted func in _generate_keyboard, else RGB)
         piano_img = os.path.join('assets', 'piano.jpg')
-        self.piano_template = cv2.cvtColor(cv2.imread(piano_img), cv2.COLOR_BGR2HSV)
+        self.piano_template = Image.open(piano_img).convert('RGBA')
 
         # other useful values
         self.max_freq = 4186  # hz of high c (key 88)
@@ -155,7 +155,7 @@ class Decomposer(object):
             return None, None
 
         # init keyboard frames with predefined shape - will eventually turn into video
-        keyboard_img_size = [self.t_final] + [232, 1910, 3]
+        keyboard_img_size = [self.t_final] + [240, 1920, 3]
         self.keyboard_frames = np.empty(keyboard_img_size, dtype=np.uint8)
 
         # init dom freqs matrix, iterate through time, find peaks and threshold
@@ -203,9 +203,13 @@ class Decomposer(object):
                     if type(piano_loc_points) is not list: continue  # handle nan case
 
                     # color in detected note on keyboard img, stack onto output img
-                    points = np.array(piano_loc_points, dtype=np.int32)
-                    cv2.fillPoly(piano_out, [points[:, ::-1]], [60, 255 * loudness, 255])
-        return cv2.cvtColor(piano_out, cv2.COLOR_HSV2RGB)
+                    poly = Image.new('RGBA', (1920, 240))
+                    pdraw = ImageDraw.Draw(poly)
+                    pdraw.polygon(piano_loc_points,
+                                  fill=(0,255,0, int(255*loudness)),
+                                  outline=(0,255,240,255))
+                    piano_out.paste(poly, mask=poly)
+        return np.array(piano_out.convert('RGB'))
 
     def _plot_spectrogram(self, amplitude_matrix, title=''):
         """ Plot our spectrograms. """
