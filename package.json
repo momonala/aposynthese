@@ -1,15 +1,12 @@
 {
   "name": "aposynthese",
   "version": "1.0.0",
-  "description": "perfect pitch for anyone.",
+  "description": "perfect pitch for anyone",
   "main": "server.js",
   "dependencies": {
     "await-spawn": "^2.1.2",
     "body-parser": "^1.18.3",
-    "execSync": "^1.0.2",
-    "express": "^4.16.4",
-    "package.json": "^2.0.1",
-    "python-shell": "^1.0.7"
+    "express": "^4.16.4"
   },
   "devDependencies": {},
   "scripts": {

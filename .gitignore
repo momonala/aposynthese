@@ -7,5 +7,4 @@ output/
 tmp/
 node_modules/
 
-package-lock.json
 *mp4
