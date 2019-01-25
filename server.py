@@ -1,4 +1,5 @@
 import os
+import argparse
 
 from flask import Flask, render_template, request, redirect, url_for
 from flask import Response, make_response, send_file
@@ -43,7 +44,11 @@ def serve_video(yt_id):
 
 
 if __name__ == '__main__':
+	parser = argparse.ArgumentParser()
+	parser.add_argument('-p', '--port', default=8000, type=int)
+	args = parser.parse_args()
+
 	app.run(
 		debug=True,
-		port=8000
+		port=args.port
 	)

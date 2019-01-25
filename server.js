@@ -8,6 +8,13 @@ const spawn = require('await-spawn')
 const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: true }));
 
+if(process.argv[2] === undefined){
+    const port = 8000;
+    console.log('No input port given. Default to port 8000.')
+} else {
+    port = process.argv[2];
+    console.log('Using given input port: '+port)
+}
 
 // serve static resources
 app.use('/static', express.static(__dirname + '/static'));
@@ -88,7 +95,7 @@ app.get('/decomposed', (req, res) => {
 
 
 // launch the server
-var server = app.listen(8000, function(){
+var server = app.listen(port, function(){
     var host = server.address().address;
     var port = server.address().port;
     console.log("Application listening at http://%s:%s", host, port);

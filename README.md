@@ -23,14 +23,15 @@ A tool to convert mp3 files into piano visualizations by decomposing the song's 
 -p, --plot      Whether to plot the spectrograms for debugging    default=False, type=bool
 ```
 
-## Run on a Node.js server locally (recommended)
-`npm start`
+## Run on a local server:
+Port always defaults to 8000. Visit `http://0.0.0.0:8000` and enter a valid YouTube URL.
+
+### Run with Node.js server (recommended)
+`npm start <optional: port#>`
 
 This is the recommended method since Node by default can run asynchronous requests and stream video content better than Python.
-## Run on a Flask server locally
-`python server.py`
-
-visit `http://0.0.0.0:8000` and enter a valid YouTube URL.
+### Run with Flask
+`python server.py <optional: port#>`
 
 # Installation
 - `pip install -r requirements.txt` (>=Python3.6)
