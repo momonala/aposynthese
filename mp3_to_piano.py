@@ -4,6 +4,7 @@ import argparse
 import logging
 import os
 import sys
+import traceback
 from glob import glob
 
 import youtube_dl
@@ -142,8 +143,11 @@ def decomposer_pipeline(arg_dict):
 
     # Decompose the song if needed
     if input_song:
-        Decomposer(input_song, stop_time=max_time, plot=plot).cvt_mp3_to_piano()
-        logger.info(f'[PIPELINE] >>>> Song sucessfully decomposed!')
+        try:
+            Decomposer(input_song, stop_time=max_time, plot=plot).cvt_mp3_to_piano()
+            logger.info(f'[PIPELINE] >>>> Song sucessfully decomposed!')
+        except Exception as e:
+            logger.error(traceback.print_exc())
 
 
 if __name__ == '__main__':

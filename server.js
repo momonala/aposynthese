@@ -32,7 +32,7 @@ app.post('/handle_data', function(req, res){
 
     // spawn the decomposition python pipeline
     const { spawn } = require('child_process');
-    const pythonProcess = spawn('python', ['mp3_to_piano.py',  '--youtube', req.body.yt_link]);
+    const pythonProcess = spawn('python3', ['mp3_to_piano.py',  '--youtube', req.body.yt_link]);
     var logs = ''
 
     // event callback to see logs
@@ -95,7 +95,7 @@ app.get('/decomposed', (req, res) => {
 
 
 // launch the server
-var server = app.listen(port, function(){
+var server = app.listen(80, function(){
     var host = server.address().address;
     var port = server.address().port;
     console.log("Application listening at http://%s:%s", host, port);
