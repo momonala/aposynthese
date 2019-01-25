@@ -24,7 +24,7 @@ A tool to convert mp3 files into piano visualizations by decomposing the song's 
 ```
 
 ## Run on a Node.js server locally (recommended)
-`node server.js`
+`npm start`
 
 This is the recommended method since Node by default can run asynchronous requests and stream video content better than Python.
 ## Run on a Flask server locally
@@ -33,7 +33,7 @@ This is the recommended method since Node by default can run asynchronous reques
 visit `http://0.0.0.0:8000` and enter a valid YouTube URL.
 
 # Installation
-- `pip install -r requirements.txt`
+- `pip install -r requirements.txt` (>=Python3.6)
 - `npm install package.json`
 - Ensure [`ffmpeg`](https://www.ffmpeg.org/) is installed and added to your PATH for [pydub](https://github.com/jiaaro/pydub/) to work.
 
@@ -42,7 +42,7 @@ visit `http://0.0.0.0:8000` and enter a valid YouTube URL.
 # How it Works 
 Sound is a time signal: in the physical world, sound is how we interpret pressurve waves propogating through air over time. Digitially, this gets translated into an array, where the values represent the amplitude of the wave and the index is the time point. 
 
-<img src="https://upload.wikimedia.org/wikipedia/commons/6/68/The_Elements_of_Sound_jpg.jpg" width="400" />
+<img src="https://home.cc.umanitoba.ca/~krussll/phonetics/acoustic/img/sine1.png" width="400" />
 
 If we want to extract the music notes from a song file, we need to know which frequencies are resonating at a each time point. [The Fourier Transform](https://en.wikipedia.org/wiki/Fourier_transform) is the mathematical operation used to translate a time signal into a frequency signal. [Scipy's spectrogram](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.spectrogram.html) method allows us to generate a high resolution plot like the one shown below for a sound file. The x-axis is time, the y-axis is frequency, and the color (or z-axis) is the relative intensity of that frequency/time point. Yellow is a higher intensity while blue is lower. The yellow spikes/lines therefore, are notes being played.
 
@@ -61,9 +61,8 @@ If this pipeline is applied across all time points, we can generate a video like
 ---
 
 # To Do Soon
-- figure out video encoding issue for web streaming
-    - can this be solved with flask vs. node.js?
-- threshold peak detection (dynamically?)
+- improve threshold peak detection (...dynamically?)
+- modularize nodejs code
 
 # To Do Eventually
 - write tests
