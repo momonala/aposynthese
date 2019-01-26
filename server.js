@@ -7,14 +7,6 @@ const bodyParser = require("body-parser");
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
-if(process.argv[2] === undefined){
-    const port = 8000;
-    console.log("No input port given. Default to port 8000.");
-} else {
-    port = parseInt(process.argv[2]);
-    console.log("Using given input port: "+port);
-}
-
 // serve static resources
 app.use("/static", express.static(__dirname + "/static"));
 
@@ -23,27 +15,29 @@ app.get("/",function(req,res) {
     res.sendFile(path.join(__dirname+"/templates/homepage.html"));
 });
 
-
 // temp endpoint to handle data for a post request for an input youtube link
 app.post("/handle_data", function(req, res){
-    console.log(req.body);
+    console.log("Incoming request: YT UUID: "+req.body);
     response = {yt_link : req.body.yt_link};
 
     // spawn the decomposition python pipeline
     const { spawn } = require("child_process");
     const pythonProcess = spawn("python3", ["mp3_to_piano.py",  "--youtube", req.body.yt_link]);
 
-    // event callback to see logs
+    // event callback to see python logs
     pythonProcess.stdout.on("data", function(data) {
         python_logs = data.toString();
         console.log(python_logs);
     });
 
-    // wait for close, redirect to streaming endpoint.
+    // wait for python process to finish, redirect to streaming endpoint or error handling.
     pythonProcess.on("close", (code) => {
         console.log(`child process exited with code ${code}`);
-        if (code > 0) {throw new Error(python_logs);}
+        if (code > 0) {
+            return res.status(500).send({message: python_logs});
+        }
 
+        console.log("Decomposing Sucessful! Redirecting to stream video.")
         var fullUrl = req.protocol + "://" + req.get("host");
         var youtube_uuid = req.body.yt_link.split("=")[1];
         res.redirect(fullUrl+"/decomposed/?yt_id="+youtube_uuid);
@@ -64,9 +58,7 @@ app.get("/decomposed", (req, res) => {
     if (range) {
         const parts = range.replace(/bytes=/, "").split("-");
         const start = parseInt(parts[0], 10);
-        const end = parts[1]
-          ? parseInt(parts[1], 10)
-          : fileSize-1
+        const end = parts[1] ? parseInt(parts[1], 10) : fileSize-1;
 
         // create stream buffer
         const chunksize = (end-start)+1;
@@ -94,7 +86,7 @@ app.get("/decomposed", (req, res) => {
 
 
 // launch the server
-var server = app.listen(80, function(){
+var server = app.listen(8000, function(){
     var host = server.address().address;
     var port = server.address().port;
     console.log("Application listening at http://%s:%s", host, port);

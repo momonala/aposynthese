@@ -8,3 +8,4 @@ tmp/
 node_modules/
 
 *mp4
+server.py
