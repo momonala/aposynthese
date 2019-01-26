@@ -7,6 +7,5 @@ audiosegment==0.12.0
 moviepy==0.2.3.5
 numpy==1.14.5
 matplotlib==2.2.2
-Flask==1.0.2
 scipy==1.1.0
 Pillow==5.4.1
