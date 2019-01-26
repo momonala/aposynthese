@@ -8,7 +8,6 @@ import traceback
 from glob import glob
 
 import youtube_dl
-from pydub import AudioSegment
 
 from decomposer import Decomposer
 
@@ -20,7 +19,7 @@ stdout_handler.setFormatter(logging.Formatter('%(asctime)s %(message)s'))
 stdout_handler.setLevel(logging.INFO)
 logger.addHandler(stdout_handler)
 
-existing_inputs = [x.strip('.mp3').strip('input/') for x in glob('input/*mp3')]
+existing_inputs = [x.strip('.wav').strip('input/') for x in glob('input/*wav')]
 existing_ouputs = [x.strip('.mp4').strip('output/') for x in glob('output/*mp4')]
 
 
@@ -48,27 +47,29 @@ def _download_youtube_vid(youtube_url, youtube_id):
     """
     options = {
         # todo youtube-dl issue, cant download only audio, getting codec issue
-        'outtmpl': '%(id)s',
+        'outtmpl': '%(id)s' + '.mp4',
         'format': 'bestaudio/best',
     }
     with youtube_dl.YoutubeDL(options) as ydl:
         try:
             ydl.download([youtube_url])
             logger.info(f'[PIPELINE] >>>> Sucessfully downloaded video file {youtube_id}.')
-
             try:
-                mp3_name = youtube_id + '.mp3'
-                AudioSegment.from_file(youtube_id).export(mp3_name, format="mp3")
-                logger.info(f'[PIPELINE] >>>> Sucessfully converted video file to mp3: {mp3_name}.')
+                # use ffmpeg to conver the .mp4 file to a (compressed) .wav
+                wav_name = youtube_id + '.wav'
+                os.system(f'ffmpeg -y -i {youtube_id}.mp4 -f mp3 -ab 192000 -vn input/{youtube_id}.mp3')
+                os.system(f'ffmpeg -y -i input/{youtube_id}.mp3 -acodec pcm_u8 -ar 22050 input/{youtube_id}.wav')
+                logger.info(f'[PIPELINE] >>>> Sucessfully converted video file to wav: {wav_name}.')
             except FileNotFoundError:
-                msg = f'[PIPELINE] >>>> Youtube download and/or mp3 conversion failed for [{mp3_name}]. ' \
+                msg = f'[PIPELINE] >>>> Youtube download and/or wav conversion failed for [{wav_name}]. ' \
                       f'Double check that URL is valid.'
                 logger.error(msg)
                 raise DecomposerError(msg)
 
-            song_file = os.path.join('input', mp3_name)
-            os.rename(mp3_name, song_file)
-            os.remove(youtube_id)  # clean up
+            # clean up
+            os.remove(youtube_id + '.mp4')
+            os.remove(os.path.join('input', youtube_id + '.mp3'))
+            song_file = os.path.join('input', wav_name)
             return song_file
 
         except youtube_dl.utils.DownloadError:
@@ -93,15 +94,15 @@ def _handle_youtube_option(youtube_url):
     # Decompose if not done already
     if youtube_id not in existing_ouputs:
         logger.info(f'[PIPELINE] >>>> Song not found in output database. Decomposing {youtube_id}')
-        return os.path.join('input', youtube_id+'.mp3')
+        return os.path.join('input', youtube_id + '.wav')
     else:
         logger.info(f'[PIPELINE] >>>> {youtube_id} exists in output database. Use cached.')
         return None
 
 
 def _handle_local_song_option(song):
-    """ Logic to handle option if input media is a predownloaded mp3. """
-    song = song.strip('.mp3')
+    """ Logic to handle option if input media is a predownloaded wav. """
+    song = song.strip('.wav')
     if song not in existing_inputs:
         logger.error(f'[PIPELINE] >>>> Song {song} does not exist in input directory. Exiting.')
         return None
@@ -110,7 +111,7 @@ def _handle_local_song_option(song):
     # Decompose if not done already
     if song not in existing_ouputs:
         logger.info(f'[PIPELINE] >>>> Song not found in output database. Decomposing {song}')
-        return os.path.join('input', song+'.mp3')
+        return os.path.join('input', song + '.wav')
     else:
         logger.info(f'[PIPELINE] >>>> {song} exists in output database. Use cached.')
         return None
@@ -123,7 +124,7 @@ def decomposer_pipeline(arg_dict):
         arg_dict (dict): dictionary of parsed arguments
     Returns: None
     """
-    # download the song from youtube as video, cvt to mp3, cleanup
+    # download the song from youtube as video, cvt to wav, cleanup
     song = arg_dict.get('song', None)
     youtube_url = arg_dict.get('youtube', None)
     max_time = arg_dict.get('max_time', None)
@@ -144,7 +145,7 @@ def decomposer_pipeline(arg_dict):
     # Decompose the song if needed
     if input_song:
         try:
-            Decomposer(input_song, stop_time=max_time, plot=plot).cvt_mp3_to_piano()
+            Decomposer(input_song, stop_time=max_time, plot=plot).cvt_audio_to_piano()
             logger.info(f'[PIPELINE] >>>> Song sucessfully decomposed!')
         except Exception as e:
             logger.error(traceback.print_exc())

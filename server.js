@@ -22,7 +22,7 @@ app.post("/handle_data", function(req, res){
 
     // spawn the decomposition python pipeline
     const { spawn } = require("child_process");
-    const pythonProcess = spawn("python3", ["mp3_to_piano.py",  "--youtube", req.body.yt_link]);
+    const pythonProcess = spawn("python3", ["audio_to_piano.py",  "--youtube", req.body.yt_link]);
 
     // event callback to see python logs
     pythonProcess.stdout.on("data", function(data) {

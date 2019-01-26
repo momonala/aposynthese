@@ -11,12 +11,12 @@ A tool to convert mp3 files into piano visualizations by decomposing the song's 
 # Installation
 - `pip install -r requirements.txt` (>=Python3.6)
 - `npm init`
-- Ensure [`ffmpeg`](https://www.ffmpeg.org/) is installed and added to your PATH for [pydub](https://github.com/jiaaro/pydub/) to work.
+- Ensure [`ffmpeg`](https://www.ffmpeg.org/) is installed and added to your PATH.
 
 # Usage
 
 ## Run with Python locally:
-`python mp3_to_piano.py [OPTIONS]`
+`python audio_to_piano.py [OPTIONS]`
 
 ### Options:
 ```

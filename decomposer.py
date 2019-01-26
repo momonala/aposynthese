@@ -27,21 +27,21 @@ logger.addHandler(stdout_handler)
 
 class Decomposer(object):
 
-    def __init__(self, mp3_file, plot=False, stop_time=None, debug=False):
+    def __init__(self, wav_file, plot=False, stop_time=None, debug=False):
         """
-        Class to decompose an mp3 file into its frequency vs. time spectrogram, and map that to piano keys.
+        Class to decompose an wav file into its frequency vs. time spectrogram, and map that to piano keys.
         Args:
-            mp3_file (str): name of mp3 file to process.
+            wav_file (str): name of wav file to process.
             plot (bool): for debugging.
             debug (bool): for debugging.
         """
-        self.mp3_file = mp3_file
+        self.wav_file = wav_file
         self.plot = plot
         self.stop_time = stop_time
         self.debug = debug
 
         # audio/acoustic data
-        self.seg = audiosegment.from_file(mp3_file)
+        self.seg = audiosegment.from_file(wav_file)
         self.raw_samples = np.array(self.seg.seg.get_array_of_samples())
         self.freq_table = generate_frequency_table()
 
@@ -63,7 +63,7 @@ class Decomposer(object):
 
         self._map_freq2note = np.vectorize(partial(_find_nearest, array=self.freq_table['Frequency (Hz)'].values))
 
-    def cvt_mp3_to_piano(self):
+    def cvt_audio_to_piano(self):
         self._generate_spectrogram()
         self._parse_spectrogram()
         self._build_movie()
@@ -88,7 +88,7 @@ class Decomposer(object):
         return arr
 
     def _generate_spectrogram(self, window_length_s=0.5, overlap=0.9):
-        """ Generate a spectrogram from our mp3 data."""
+        """ Generate a spectrogram from our wav data."""
         self.freqs, self.times, self.amplitudes = self.seg.spectrogram(window_length_s=window_length_s,
                                                                        overlap=overlap)
         # slice out only the ranges we are interested in
@@ -234,11 +234,11 @@ class Decomposer(object):
 
         imageio.mimwrite('tmp.mp4', self.keyboard_frames, fps=fps)
 
-        outname = self.mp3_file.replace('input', 'output')
-        outname = outname.replace('mp3', 'mp4')
+        outname = self.wav_file.replace('input', 'output')
+        outname = outname.replace('wav', 'mp4')
 
         output = VideoFileClip('tmp.mp4')
-        output = output.set_audio(AudioFileClip(self.mp3_file))
+        output = output.set_audio(AudioFileClip(self.wav_file))
         output.write_videofile(
             outname,
             fps=self.fps_out,
