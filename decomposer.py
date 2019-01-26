@@ -8,7 +8,6 @@ from functools import partial
 import audiosegment
 import imageio
 import numpy as np
-import pandas as pd
 from PIL import Image, ImageDraw
 from moviepy.editor import AudioFileClip, VideoFileClip
 from scipy.signal import find_peaks
@@ -27,18 +26,16 @@ logger.addHandler(stdout_handler)
 
 class Decomposer(object):
 
-    def __init__(self, wav_file, plot=False, stop_time=None, debug=False):
+    def __init__(self, wav_file, plot=False, stop_time=None):
         """
         Class to decompose an wav file into its frequency vs. time spectrogram, and map that to piano keys.
         Args:
             wav_file (str): name of wav file to process.
             plot (bool): for debugging.
-            debug (bool): for debugging.
         """
         self.wav_file = wav_file
         self.plot = plot
         self.stop_time = stop_time
-        self.debug = debug
 
         # audio/acoustic data
         self.seg = audiosegment.from_file(wav_file)
@@ -144,19 +141,6 @@ class Decomposer(object):
                 amp_arr_nonzero = amp_arr[freq_idx]
                 detected_freqs = self.freqs[freq_idx]
                 f_table_idx = self._map_freq2note(detected_freqs)
-
-                if self.debug:
-                    # bc dataframes are prettier than matrices
-                    helmholtz = self.freq_table.iat[90 - f_table_idx].Helmholtzname
-                    notes_out = pd.DataFrame([
-                        helmholtz.values,
-                        detected_freqs,
-                        amp_arr_nonzero,
-                        f_table_idx]
-                    ).T
-                    notes_out.columns = ['note', 'f', 'db', 'num']
-                    print(notes_out)
-
                 return f_table_idx, amp_arr_nonzero
             return None, None
 
