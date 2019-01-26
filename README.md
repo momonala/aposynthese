@@ -8,6 +8,10 @@ A tool to convert mp3 files into piano visualizations by decomposing the song's 
 [![output](assets/sample_output.gif)](https://youtu.be/Gx8MmG-gvlk "output")
 
 ---
+# Installation
+- `pip install -r requirements.txt` (>=Python3.6)
+- `npm init`
+- Ensure [`ffmpeg`](https://www.ffmpeg.org/) is installed and added to your PATH for [pydub](https://github.com/jiaaro/pydub/) to work.
 
 # Usage
 
@@ -22,12 +26,6 @@ A tool to convert mp3 files into piano visualizations by decomposing the song's 
 -m, --max_time  Time to process audio file until                  default=None, type=int
 -p, --plot      Whether to plot the spectrograms for debugging    default=False, type=bool
 ```
-
-# Installation
-- `pip install -r requirements.txt` (>=Python3.6)
-- `npm init`
-- Ensure [`ffmpeg`](https://www.ffmpeg.org/) is installed and added to your PATH for [pydub](https://github.com/jiaaro/pydub/) to work.
-
 
 ## Run on a local Node.js server:
 `npm start`
