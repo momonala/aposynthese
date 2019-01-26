@@ -23,20 +23,16 @@ A tool to convert mp3 files into piano visualizations by decomposing the song's 
 -p, --plot      Whether to plot the spectrograms for debugging    default=False, type=bool
 ```
 
-## Run on a local server:
-Port always defaults to 8000. Visit `http://0.0.0.0:8000` and enter a valid YouTube URL.
-
-### Run with Node.js server (recommended)
-`npm start`
-
-This is the recommended method since Node by default can run asynchronous requests and stream video content better than Python.
-### Run with Flask
-`python server.py`
-
 # Installation
 - `pip install -r requirements.txt` (>=Python3.6)
 - `npm init`
 - Ensure [`ffmpeg`](https://www.ffmpeg.org/) is installed and added to your PATH for [pydub](https://github.com/jiaaro/pydub/) to work.
+
+
+## Run on a local Node.js server:
+`npm start`
+
+Port defaults to 8000. Visit `http://0.0.0.0:8000` and enter a valid YouTube URL.
 
 ---
 
