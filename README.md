@@ -30,7 +30,7 @@ A tool to convert mp3 files into piano visualizations by decomposing the song's 
 ## Run on a local Node.js server:
 `npm start`
 
-Port defaults to 8000. Visit `http://0.0.0.0:8000` and enter a valid YouTube URL.
+Port defaults to 80. Visit `http://0.0.0.0:80` and enter a valid YouTube URL.
 
 ---
 
@@ -57,6 +57,7 @@ If this pipeline is applied across all time points, we can generate a video like
 
 # To Do Soon
 - improve threshold peak detection (...dynamically?)
+- automated deployment
 - modularize nodejs code
 
 # To Do Eventually
