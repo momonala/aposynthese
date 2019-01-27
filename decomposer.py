@@ -61,6 +61,7 @@ class Decomposer(object):
         self._map_freq2note = np.vectorize(partial(_find_nearest, array=self.freq_table['Frequency (Hz)'].values))
 
     def cvt_audio_to_piano(self):
+        logger.info('[DECOMPOSER] >>>> Beginning pipeline.')
         self._generate_spectrogram()
         self._parse_spectrogram()
         self._build_movie()
@@ -102,6 +103,7 @@ class Decomposer(object):
         else:
             self.t_final = self.times.shape[0]
 
+        logger.info('[DECOMPOSER] >>>> Generated Spectrogram.')
         self._plot_spectrogram(self.amplitudes, 'Raw Spectrogram')
 
     def _parse_spectrogram(self):
@@ -152,7 +154,7 @@ class Decomposer(object):
         self.dominant_amplitudes = self.amplitudes.copy()
         for t in tqdm(range(self.t_final)):
             _get_peaks_and_threshold(t)
-        logger.info('[Decomposer] >>>> Found dominant frequencies.')
+        logger.info('[DECOMPOSER] >>>> Parsed Spectrogram. Found dominant frequencies.')
 
         # median filter along time axis to get rid of white noise
         self.dominant_amplitudes = np.apply_along_axis(self._median_filter, 1, self.dominant_amplitudes)
@@ -162,7 +164,7 @@ class Decomposer(object):
             t_note_data = _get_notes(t)
             keyboard = self._generate_keyboard(*t_note_data)
             self.keyboard_frames[t, ...] = keyboard
-        logger.info('[Decomposer] >>>> Mapped frequencies to notes and generated keyboard visualizations.')
+        logger.info('[DECOMPOSER] >>>> Mapped frequencies to notes and generated keyboard visualizations.')
 
         self._plot_spectrogram(self.dominant_amplitudes, 'Filtered Spectrogram of Dominant Frequencies')
 
