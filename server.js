@@ -8,7 +8,7 @@ const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // serve static resources
-app.use("/static", express.static(__dirname + "/static"));
+app.use("/assets", express.static(__dirname + "/assets"));
 
 // homepage endpoint. __dirname will resolve to project folder.
 app.get("/",function(req,res) {
