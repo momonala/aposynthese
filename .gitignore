@@ -6,6 +6,7 @@ input/
 output/
 tmp/
 node_modules/
+prototyping/
 
 *mp4
 server.py
