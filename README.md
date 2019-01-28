@@ -49,19 +49,26 @@ We then iterate through this plot across time, and apply peak detection at each 
 
 <img src="/assets/piano_sample.png" width="1100" />
 
-If this pipeline is applied across all time points, we can generate a video like this! Click the gif for a sample :)
+If this pipeline is applied across all time points, we can generate a video like this! Click the gif for a sample video :)
 
 [![output](assets/sample_output.gif)](https://youtu.be/Gx8MmG-gvlk "output")
 
 ---
 
-# To Do Soon
-- improve threshold peak detection (...dynamically?)
-- automated deployment
+# To Do Deployment
+- use iterative FFT to avoid matrix multiplcation memory error
+- Docker for automated deployment
 - modularize nodejs code
 
-# To Do Eventually
+# To Do Data Sciencey bits
+- improve threshold peak detection (...dynamically?)
+    - ignore really low frequencies
+    - play with or automate parameters in `scipy.signal.find_peaks`
 - isolate instrument tracks and allow user to select what to decompose
-- create guitar-hero like visualizaions for seeing future notes
-- write 'how it works' blog post
+    - https://librosa.github.io/librosa_gallery/auto_examples/plot_vocal_separation.html
+    - [relevant research paper](http://www.cs.northwestern.edu/~zra446/doc/Rafii-Pardo%20-%20Music-Voice%20Separation%20using%20the%20Similarity%20Matrix%20-%20ISMIR%202012.pdf)
+
+# To Do Eventually
+- create guitar-hero like visualizaions for seeing future notes :D
+- write in-depth 'how it works' blog post
 - write tests
