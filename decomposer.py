@@ -5,7 +5,7 @@ import os
 import sys
 from functools import partial
 
-import audiosegment
+import librosa
 import imageio
 import numpy as np
 from PIL import Image, ImageDraw
@@ -26,32 +26,28 @@ logger.addHandler(stdout_handler)
 
 class Decomposer(object):
 
-    def __init__(self, wav_file, plot=False, stop_time=None):
+    def __init__(self, wav_file, stop_time=None):
         """
         Class to decompose an wav file into its frequency vs. time spectrogram, and map that to piano keys.
         Args:
             wav_file (str): name of wav file to process.
-            plot (bool): for debugging.
+            stop_time (float): end time to trim song to
         """
         self.wav_file = wav_file
-        self.plot = plot
         self.stop_time = stop_time
 
+        # other useful values
+        self.max_freq = 4186  # hz of high c (key 88). Sample rate will be double this (Nyquist Sampling Theorem).
+        self.fps_out = 30  # fps of output video
+
         # audio/acoustic data
-        self.seg = audiosegment.from_file(wav_file)
-        self.raw_samples = np.array(self.seg.seg.get_array_of_samples())
+        self.audio_ts, self.sample_rate = librosa.load(wav_file, sr=self.max_freq * 2, duration=self.stop_time)
+        self.duration = librosa.get_duration(self.audio_ts, sr=self.sample_rate)
         self.freq_table = generate_frequency_table()
 
         # init a fresh piano img (use HSV if not using addWeighted func in _generate_keyboard, else RGB)
         piano_img = os.path.join('assets', 'piano.jpg')
         self.piano_template = Image.open(piano_img).convert('RGBA')
-
-        # other useful values
-        self.max_freq = 4186  # hz of high c (key 88)
-        self.fps_out = 30  # fps of output video
-
-        # useful transform for better plotting visualization of spectrogram
-        self._log_amps = lambda x: 10 * np.log10(x + 1e-9)
 
         def _find_nearest(value, array):
             """Quantize a value (detected frequency) to piano nearest frequency."""
@@ -85,15 +81,10 @@ class Decomposer(object):
         arr[-median.shape[0]:] = median
         return arr
 
-    def _generate_spectrogram(self, window_length_s=0.5, overlap=0.9):
-        """ Generate a spectrogram from our wav data."""
-        self.freqs, self.times, self.amplitudes = self.seg.spectrogram(window_length_s=window_length_s,
-                                                                       overlap=overlap)
-        # slice out only the ranges we are interested in
-        max_freq_idx = np.argmin(self.freqs < self.max_freq)
-        self.times = self.times / 2
-        self.freqs = self.freqs[:max_freq_idx]
-        self.amplitudes = self.amplitudes[:max_freq_idx, :]
+    def _generate_spectrogram(self):
+        self.amplitudes, phase = librosa.magphase(librosa.stft(self.audio_ts))
+        self.times = np.linspace(0, self.duration, self.amplitudes.shape[1] + 1)
+        self.freqs = librosa.fft_frequencies(sr=self.sample_rate, n_fft=2048)
 
         # median filter along time axis to get rid of white noise
         self.amplitudes = np.apply_along_axis(self._median_filter, 1, self.amplitudes)
@@ -104,7 +95,6 @@ class Decomposer(object):
             self.t_final = self.times.shape[0]
 
         logger.info('[DECOMPOSER] >>>> Generated Spectrogram.')
-        self._plot_spectrogram(self.amplitudes, 'Raw Spectrogram')
 
     def _parse_spectrogram(self):
         """ Parse the spectrogram by iterating through the time axis, thresholding
@@ -166,8 +156,6 @@ class Decomposer(object):
             self.keyboard_frames[t, ...] = keyboard
         logger.info('[DECOMPOSER] >>>> Mapped frequencies to notes and generated keyboard visualizations.')
 
-        self._plot_spectrogram(self.dominant_amplitudes, 'Filtered Spectrogram of Dominant Frequencies')
-
     def _generate_keyboard(self, f_table_idx, amp_arr_nonzero, loudness_thresh=0.25):
         """
         Iterate through notes found in sample and draw on keyboard image.
@@ -203,16 +191,17 @@ class Decomposer(object):
                     piano_out.paste(poly, mask=poly)
         return np.array(piano_out.convert('RGB'))
 
-    def _plot_spectrogram(self, amplitude_matrix, title=''):
+    def _plot_spectrogram(self, spectrogram, title=''):
         """ Plot our spectrograms for debugging. """
-        if self.plot:
-            import matplotlib.pyplot as plt
-            plt.figure(figsize=(20, 6))
-            plt.pcolormesh(self.times, self.freqs, self._log_amps(amplitude_matrix))
-            plt.xlabel("Time in Seconds")
-            plt.ylabel("Frequency in Hz")
-            plt.title(title)
-            plt.show()
+        import matplotlib.pyplot as plt
+        import librosa.display
+        plt.figure(figsize=(20, 6))
+        librosa.display.specshow(librosa.amplitude_to_db(spectrogram, ref=np.max),
+                                 y_axis='log', x_axis='time', sr=self.sample_rate)
+        plt.title(title)
+        plt.colorbar(format='%+2.0f dB')
+        plt.tight_layout()
+        plt.show()
 
     def _build_movie(self):
         """ Concatenate self.keyboard_frames images into video file, add back original music."""
