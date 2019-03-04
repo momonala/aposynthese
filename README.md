@@ -43,7 +43,7 @@ If we want to extract the musical notes from a song, we need to know which frequ
 
 <img src="/assets/spectrogram.png" width="1100" />
 
-We then iterate through this plot across time, and apply peak detection at each time vector. Next we map the dominant frequencies at each time point to [notes on a music scale](https://en.wikipedia.org/wiki/Piano_key_frequencies). Below the plot shows a fourier transform (FFT) performed at a given time point, with peak detection applied. The piano shows the detected dominant frequencies mapped onto the keys. 
+We then iterate through this spectrogram plot across time, and apply peak detection at each spectral time vector. Next we map the dominant frequencies at each time point to [notes on a music scale](https://en.wikipedia.org/wiki/Piano_key_frequencies). Below the plot shows a fourier transform (FFT) performed at a given time point, with peak detection applied. The piano shows the detected dominant frequencies mapped onto the keys. 
 
 <img src="/assets/fft.png" width="1100" />
 
