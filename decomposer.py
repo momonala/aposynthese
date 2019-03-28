@@ -258,6 +258,17 @@ class Decomposer(object):
         keyboard_img_size = [self.t_final] + [240, 1920, 3]
         self._keyboard_frames = np.empty(keyboard_img_size, dtype=np.uint8)
 
+        # variables for genreating full frame visualization
+        num_time_steps_in_1_sec = int(self._keyboard_frames.shape[0] / self.stop_time)
+        stretch_vec_factor = (1080 - self._keyboard_frames.shape[1]) / num_time_steps_in_1_sec
+
+        # continue init
+        piano_roll_size = [self.t_final + num_time_steps_in_1_sec] + [1, 1920, 3]
+        full_frame_size = [self.t_final] + [1072, 1920, 3]
+
+        self._piano_roll = np.empty(piano_roll_size, dtype=np.uint8)
+        self._full_frames = np.empty(full_frame_size, dtype=np.uint8)
+
         # init dom freqs matrix, iterate through time, find peaks and threshold
         self.dominant_amplitudes = self.amplitudes.copy()
         for time in tqdm(range(self.t_final)):
@@ -271,8 +282,18 @@ class Decomposer(object):
         self.chromagram = np.zeros((89, self.t_final))
         for time in tqdm(range(self.t_final)):
             active_keys, active_ampltidues = _get_notes(time)
-            keyboard = self._generate_keyboard(active_keys, active_ampltidues)
+            keyboard, piano_roll_slice = self._generate_keyboard(active_keys, active_ampltidues)
             self._keyboard_frames[time, ...] = keyboard
+            self._piano_roll[time, ...] = piano_roll_slice
+
+        # iterate through time and concat piano roll with the keyboard for full frame
+        for time in tqdm(range(self.t_final)):
+            k_frame = self._keyboard_frames[time, ...]
+            roll_slice = np.flip(np.squeeze(self._piano_roll[time:time + num_time_steps_in_1_sec, :]), axis=0)
+            p_frame = np.repeat(roll_slice, repeats=stretch_vec_factor, axis=0)
+            full_frame = np.vstack([p_frame, k_frame])
+            self._full_frames[time, ...] = full_frame
+
         logger.info('[DECOMPOSER] >>>> Mapped frequencies to notes and generated keyboard visualizations.')
 
     def _generate_keyboard(self, key_number_array, amp_array_non_zero):
@@ -288,9 +309,10 @@ class Decomposer(object):
 
         """
         piano_out = self.piano_template.copy()
+        piano_roll_slice = np.zeros((1, 1920, 3), dtype=np.uint8)
         if key_number_array is not None:
-            amp_array_non_zero = self._normalize_filter(amp_array_non_zero,
-                                                        algo=self.norm_algo)
+            amp_array_non_zero = self._normalize_filter(amp_array_non_zero, algo=self.norm_algo)
+
             # iterate through detected notes, extract location on keyboard if loudness thresh met
             for n in range(key_number_array.shape[0]):
                 idx = key_number_array[n]
@@ -301,6 +323,9 @@ class Decomposer(object):
                     if type(piano_loc_points) is not list:
                         continue  # handle nan case
 
+                    # fill in time vector for piano roll
+                    piano_roll_slice[:, piano_loc_points[0][0]:piano_loc_points[-1][0], 1] = int(255 * loudness)
+
                     # color in detected note on keyboard img, stack onto output img
                     poly = Image.new('RGBA', (1920, 240))
                     pdraw = ImageDraw.Draw(poly)
@@ -308,7 +333,7 @@ class Decomposer(object):
                                   fill=(0, 255, 0, int(255 * loudness)),
                                   outline=(0, 255, 240, 255))
                     piano_out.paste(poly, mask=poly)
-        return np.array(piano_out.convert('RGB'))
+        return np.array(piano_out.convert('RGB')), piano_roll_slice
 
     def _format_chromagram(self, thresh=None):
         """
@@ -402,7 +427,7 @@ class Decomposer(object):
         """ Concatenate self._keyboard_frames images into video file, add back original music. """
         fps = 1. / (self.times[1] - self.times[0])
 
-        imageio.mimwrite('tmp.mp4', self._keyboard_frames, fps=fps)
+        imageio.mimwrite('tmp.mp4', self._full_frames, fps=fps)
 
         outname = self.wav_file.replace('input', 'output')
         outname = outname.replace('wav', 'mp4')
