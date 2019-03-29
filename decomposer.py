@@ -120,7 +120,7 @@ class Decomposer(object):
         Performs Vocal Separation on this HPSS filtered STFT. """
 
         self.spec_raw, phase = librosa.magphase(librosa.stft(self.audio_ts, self.n_fft))
-        self.times = np.linspace(0, self.duration, self.spec_raw.shape[1] + 1)
+        self.times = np.linspace(0, self.duration, self.spec_raw.shape[1])
         self.freqs = librosa.fft_frequencies(sr=self.sample_rate, n_fft=self.n_fft)
 
         logger.info('[DECOMPOSER] >>>> Generated raw spectrogram.')
@@ -259,7 +259,7 @@ class Decomposer(object):
         self._keyboard_frames = np.empty(keyboard_img_size, dtype=np.uint8)
 
         # variables for genreating full frame visualization
-        num_time_steps_in_1_sec = int(self._keyboard_frames.shape[0] / self.stop_time)
+        num_time_steps_in_1_sec = int(self._keyboard_frames.shape[0] / (self.stop_time or self.duration))
         stretch_vec_factor = (1080 - self._keyboard_frames.shape[1]) / num_time_steps_in_1_sec
 
         # continue init
@@ -432,9 +432,8 @@ class Decomposer(object):
         outname = self.wav_file.replace('input', 'output')
         outname = outname.replace('wav', 'mp4')
 
-        output = VideoFileClip('tmp.mp4').cutout(0, .3)
-        audio = AudioFileClip(self.wav_file)
-        output = output.set_audio(audio)
+        output = VideoFileClip('tmp.mp4').cutout(0, .3)  # trim to compensate for FFT lag
+        output = output.set_audio(AudioFileClip(self.wav_file))
         output.write_videofile(
             outname,
             fps=self.fps_out,
