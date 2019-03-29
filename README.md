@@ -56,12 +56,15 @@ If this pipeline is applied across all time points, we can generate a video like
 
 [![output](assets/sample_output.gif)](https://youtu.be/Gx8MmG-gvlk "output")
 
+## Harmonic-Percussive Source Separation
+
 In addition to this base-level signal processing, we can add additional techniques from the field of Music Information Processing to clean up our spectrograms and generate higher accuracy piano visualizations. Specfically, Aposynthese uses two cutting edge techniques: Harmonic-Percussive Source Separation (HPSS), and vocal separation, so that only the harmonic tones derived from instrumentation is left. 
 
 HPSS leverages the fact that percussive sounds appear as vertical segments in the spectrogram, while harmonic tones sustain along the horizontal axis. One can create masks of the spectrogram which respond most to both horizontal and vertical components, respectively, using median filters. You can read more about HPSS in [librosa's implementation of it](https://librosa.github.io/librosa_gallery/auto_examples/plot_hprss.html).
 
 <img src="/assets/hpss.png" width="1000" />
 
+## Vocal Separation
 
 Vocal separation can be accomplished using a similar technique. While instrumentation can be seen as straight lines, vocals can be seen in the spectrogram curves. We can separate the vocals (foreground) out by comparing frames of the spectrogram across time, using cosine similarity, and suppressing sparse/non-repetetitive components. The repetitive components are understood to be the rhythms of the music, where as vocals change more over time. From this, you can use masks to separate the two components. Again, see [librosa's implementation](https://librosa.github.io/librosa_gallery/auto_examples/plot_vocal_separation.html) for specifics. 
 
