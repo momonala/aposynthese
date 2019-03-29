@@ -77,7 +77,7 @@ Vocal separation can be accomplished using a similar technique. While instrument
 
 - Harmonic/Percussive Separation Using MedianFiltering - Fitzgerald, 2010 [PDF link](https://arrow.dit.ie/cgi/viewcontent.cgi?referer=&httpsredir=1&article=1078&context=argcon)
 
-- Music/Voice Separation Using the Similarity Matrix, Rafii and Pardo, 2012 [PDF link](www.cs.northwestern.edu/~zra446/doc/Rafii-Pardo - Music-Voice Separation using the Similarity Matrix - ISMIR 2012.pdf)
+- Music/Voice Separation Using the Similarity Matrix, Rafii and Pardo, 2012 [PDF link](https://www.cs.northwestern.edu/~zra446/doc/Rafii-Pardo%20-%20Music-Voice%20Separation%20using%20the%20Similarity%20Matrix%20-%20ISMIR%202012.pdf)
 
 ---
 
