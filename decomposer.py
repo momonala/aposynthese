@@ -432,8 +432,9 @@ class Decomposer(object):
         outname = self.wav_file.replace('input', 'output')
         outname = outname.replace('wav', 'mp4')
 
-        output = VideoFileClip('tmp.mp4')
-        output = output.set_audio(AudioFileClip(self.wav_file))
+        output = VideoFileClip('tmp.mp4').cutout(0, .3)
+        audio = AudioFileClip(self.wav_file)
+        output = output.set_audio(audio)
         output.write_videofile(
             outname,
             fps=self.fps_out,
