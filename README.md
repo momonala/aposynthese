@@ -52,8 +52,6 @@ We take these dominant frequencies and map them to [notes on a music scale](http
 
 <img src="/assets/fft.png" width="1100" />
 
-<img src="/assets/piano_sample.png" width="1100" />
-
 If this pipeline is applied across all time points, we can generate a video like this! Click the gif for a sample video :)
 
 [![output](assets/sample_output.gif)](https://youtu.be/Gx8MmG-gvlk "output")
@@ -65,9 +63,21 @@ HPSS leverages the fact that percussive sounds appear as vertical segments in th
 <img src="/assets/hpss.png" width="1000" />
 
 
-Vocal separation can be accomplished using a similar technique. While instrumentation can be seen as straight lines, vocals can be seen in the spectrogram curves. We can separate the vocals (foreground) out by comparing frames of the spectrogram across time, using cosine similarity, and suppressing sparse/non-repetetitive components. The repetitive components are understood to be the rhythms of the music, where as vocals change more over time. From this, you can use masks to separate the two components. 
+Vocal separation can be accomplished using a similar technique. While instrumentation can be seen as straight lines, vocals can be seen in the spectrogram curves. We can separate the vocals (foreground) out by comparing frames of the spectrogram across time, using cosine similarity, and suppressing sparse/non-repetetitive components. The repetitive components are understood to be the rhythms of the music, where as vocals change more over time. From this, you can use masks to separate the two components. Again, see [librosa's implementation](https://librosa.github.io/librosa_gallery/auto_examples/plot_vocal_separation.html) for specifics. 
 
 <img src="/assets/vocal_sep.png" width="1000" />
+
+---
+
+# Further Reading 
+
+- Müller, Meinard. Fundamentals of Music Processing: Audio, Analysis, Algorithms, Applications. Springer, 2015.
+
+- LibROSA: [Python music and audio analysis library](https://librosa.github.io/librosa/)
+
+- Harmonic/Percussive Separation Using MedianFiltering - Fitzgerald, 2010 [PDF link](https://arrow.dit.ie/cgi/viewcontent.cgi?referer=&httpsredir=1&article=1078&context=argcon)
+
+- Music/Voice Separation Using the Similarity Matrix, Rafii and Pardo, 2012 [PDF link](www.cs.northwestern.edu/~zra446/doc/Rafii-Pardo - Music-Voice Separation using the Similarity Matrix - ISMIR 2012.pdf)
 
 ---
 
