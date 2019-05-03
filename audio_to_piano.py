@@ -145,7 +145,7 @@ def decomposer_pipeline(arg_dict):
     # Decompose the song if needed
     if input_song:
         try:
-            Decomposer(input_song, stop_time=max_time, plot=plot).cvt_audio_to_piano()
+            Decomposer(input_song, stop_time=max_time).cvt_audio_to_piano()
             logger.info(f'[PIPELINE] >>>> Song sucessfully decomposed!')
         except Exception as e:
             logger.error(traceback.print_exc())
