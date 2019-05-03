@@ -43,6 +43,8 @@ class Decomposer(object):
         self.n_fft = 2048           # FFT window size for STFT spectrogram
         self.norm_algo = 'div_max'  # algorithm to normalize spectral vectors
         self.amp_thresh = 0.3       # float [0, 1] threshold normalized amplitudes must exceed to be mapped to piano
+        self.length = 1920          # length of video
+        self.keyboard_width = 240    # size of keyboard in video
 
         # raw audio/acoustic data
         self.audio_ts, self.sample_rate = librosa.load(wav_file, sr=self.max_freq * 2, duration=self.stop_time)
@@ -254,17 +256,14 @@ class Decomposer(object):
                 return key_number_array, amp_array_non_zero
             return None, None
 
-        # init keyboard frames with predefined shape - will eventually turn into video
-        keyboard_img_size = [self.t_final] + [240, 1920, 3]
-        self._keyboard_frames = np.empty(keyboard_img_size, dtype=np.uint8)
-
         # variables for genreating full frame visualization
-        num_time_steps_in_1_sec = int(self._keyboard_frames.shape[0] / (self.stop_time or self.duration))
-        stretch_vec_factor = (1080 - self._keyboard_frames.shape[1]) / num_time_steps_in_1_sec
+        num_time_steps_in_1_sec = int(self.t_final / (self.stop_time or self.duration))
+        stretch_vec_factor = int((1080 - self.keyboard_width) / num_time_steps_in_1_sec)
+        self.piano_roll_width = num_time_steps_in_1_sec * stretch_vec_factor
 
         # continue init
-        piano_roll_size = [self.t_final + num_time_steps_in_1_sec] + [1, 1920, 3]
-        full_frame_size = [self.t_final] + [1072, 1920, 3]
+        piano_roll_size = [self.t_final + num_time_steps_in_1_sec] + [1, self.length, 3]
+        full_frame_size = [self.t_final] + [1072, self.length, 3]
 
         self._piano_roll = np.empty(piano_roll_size, dtype=np.uint8)
         self._full_frames = np.empty(full_frame_size, dtype=np.uint8)
@@ -278,21 +277,20 @@ class Decomposer(object):
         # median filter along time axis to get rid of white noise
         self.dominant_amplitudes = np.apply_along_axis(self._median_filter, 1, self.dominant_amplitudes)
 
-        # iterate through time, map dominant frequencies to notes, generate keyboard visualizations
+        # iterate through time, map dominant frequencies to notes,
+        # generate keyboard visualizations, concat piano roll with the keyboard for full frame
         self.chromagram = np.zeros((89, self.t_final))
         for time in tqdm(range(self.t_final)):
             active_keys, active_ampltidues = _get_notes(time)
             keyboard, piano_roll_slice = self._generate_keyboard(active_keys, active_ampltidues)
-            self._keyboard_frames[time, ...] = keyboard
+            self._full_frames[time, self.piano_roll_width:, ...] = keyboard
             self._piano_roll[time, ...] = piano_roll_slice
 
-        # iterate through time and concat piano roll with the keyboard for full frame
         for time in tqdm(range(self.t_final)):
-            k_frame = self._keyboard_frames[time, ...]
             roll_slice = np.flip(np.squeeze(self._piano_roll[time:time + num_time_steps_in_1_sec, :]), axis=0)
-            p_frame = np.repeat(roll_slice, repeats=stretch_vec_factor, axis=0)
-            full_frame = np.vstack([p_frame, k_frame])
-            self._full_frames[time, ...] = full_frame
+            for i in range(roll_slice.shape[0]):
+                self._full_frames[time, i * stretch_vec_factor:(i + 1) * stretch_vec_factor, ...] = roll_slice[i]
+                # equivalent of without copying: p_frame = np.repeat(roll_slice, repeats=stretch_vec_factor, axis=0)
 
         logger.info('[DECOMPOSER] >>>> Mapped frequencies to notes and generated keyboard visualizations.')
 
@@ -309,7 +307,7 @@ class Decomposer(object):
 
         """
         piano_out = self.piano_template.copy()
-        piano_roll_slice = np.zeros((1, 1920, 3), dtype=np.uint8)
+        piano_roll_slice = np.zeros((1, self.length, 3), dtype=np.uint8)
         if key_number_array is not None:
             amp_array_non_zero = self._normalize_filter(amp_array_non_zero, algo=self.norm_algo)
 
@@ -327,7 +325,7 @@ class Decomposer(object):
                     piano_roll_slice[:, piano_loc_points[0][0]:piano_loc_points[-1][0], 1] = int(255 * loudness)
 
                     # color in detected note on keyboard img, stack onto output img
-                    poly = Image.new('RGBA', (1920, 240))
+                    poly = Image.new('RGBA', (self.length, self.keyboard_width))
                     pdraw = ImageDraw.Draw(poly)
                     pdraw.polygon(piano_loc_points,
                                   fill=(0, 255, 0, int(255 * loudness)),
@@ -424,7 +422,7 @@ class Decomposer(object):
         plt.show()
 
     def _build_movie(self):
-        """ Concatenate self._keyboard_frames images into video file, add back original music. """
+        """ Concatenate self._full_frames images into video file, add back original music. """
         fps = 1. / (self.times[1] - self.times[0])
 
         imageio.mimwrite('tmp.mp4', self._full_frames, fps=fps)
