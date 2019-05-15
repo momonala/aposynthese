@@ -4,15 +4,17 @@ import logging
 import os
 import sys
 from functools import partial
+from glob import glob
 
-import librosa
 import imageio
+import librosa
 import numpy as np
 from PIL import Image, ImageDraw
-from moviepy.editor import AudioFileClip, VideoFileClip
+from moviepy.editor import AudioFileClip, VideoFileClip, concatenate_videoclips
 from scipy.signal import find_peaks
 from tqdm import tqdm
-from signal_process_utils import generate_frequency_table
+
+from signal_process_utils import generate_frequency_table, get_memory_usage
 
 # logger with special stream handling to output to stdout in Node.js
 logging.basicConfig(level=logging.INFO)
@@ -22,13 +24,10 @@ stdout_handler.setFormatter(logging.Formatter('%(asctime)s %(message)s'))
 stdout_handler.setLevel(logging.INFO)
 logger.addHandler(stdout_handler)
 
-from utils import get_memory_usage
-def tqdm(x): return x  # disable tqdm
-
 
 class Decomposer(object):
 
-    def __init__(self, wav_file, stop_time=None):
+    def __init__(self, wav_file=None, stop_time=None, scale=2):
         logger.info(f'__init__ mem: {get_memory_usage()}')
 
         """ Class to decompose an wav file into its frequency vs. time spectrogram,
@@ -37,6 +36,7 @@ class Decomposer(object):
         Args:
             wav_file (str): name of wav file to process.
             stop_time (float): end time to trim song to
+            scale (int): factor to resize origin image (from 1920x1080 resolution)
         """
         self.wav_file = wav_file
         self.stop_time = stop_time
@@ -44,6 +44,12 @@ class Decomposer(object):
         # init a fresh piano img (use HSV if not using addWeighted func in _generate_keyboard, else RGB)
         piano_img = os.path.join('assets', 'piano.jpg')
         self.piano_template = Image.open(piano_img).convert('RGBA')
+
+        # downsize for memory optimization
+        self.piano_template = self.piano_template.resize(
+            tuple(x//scale for x in self.piano_template.size),
+            Image.ANTIALIAS
+        )
 
         # hardcoded constants
         self.max_freq = 4186        # Hz of high c (key 88). Sample rate is double (Nyquist Sampling Theorem).
@@ -56,12 +62,12 @@ class Decomposer(object):
         # output image sizes
         self.length_full = self.piano_template.size[0]      # length of a full frame
         self.keyboard_width = self.piano_template.size[1]   # size of keyboard in video
-        self.width_full = self.length_full*9/16             # expected width of a full frame (16:9 aspect ratio)
+        self.width_full = self.length_full*9//16             # expected width of a full frame (16:9 aspect ratio)
 
         # raw audio/acoustic data
         self.audio_ts, self.sample_rate = librosa.load(wav_file, sr=self.max_freq * 2, duration=self.stop_time)
         self.duration = librosa.get_duration(self.audio_ts, sr=self.sample_rate)
-        self.freq_table = generate_frequency_table()
+        self.freq_table = generate_frequency_table(scale=scale)
 
         def _find_nearest(value, array):
             """ Quantize a value (detected frequency) to piano's nearest fundemental frequency."""
@@ -80,9 +86,9 @@ class Decomposer(object):
         logger.info(f'_select_spectrogram mem: {get_memory_usage()}')
         self._parse_spectrogram()
         logger.info(f'_parse_spectrogram mem: {get_memory_usage()}')
-        # self._build_movie()
-        # logger.info(f'_build_movie mem: {get_memory_usage()}')
-        # logger.info('[DECOMPOSER] >>>> Pipeline completed!')
+        self._build_movie()
+        logger.info(f'_build_movie mem: {get_memory_usage()}')
+        logger.info('[DECOMPOSER] >>>> Pipeline completed!')
 
     @staticmethod
     def _normalize_filter(matrix, axis=0, algo='div_max'):
@@ -274,11 +280,16 @@ class Decomposer(object):
         self.piano_roll_width = num_time_steps_in_1_sec * stretch_vec_factor
         self.width_full = self.keyboard_width+self.piano_roll_width  # update full frame size to approximated
 
+        # init matrices for creating video from frames.
+        # tmp_frame for writing smaller videos, avoids full video frame matrix in memory
+        tmp_buffer_size = 50
         piano_roll_size = [self.t_final + num_time_steps_in_1_sec, 1, self.length_full, 3]
         full_frame_size = [self.t_final, self.width_full, self.length_full, 3]
+        tmp_frame_size = [tmp_buffer_size, self.width_full, self.length_full, 3]
 
         self._piano_roll = np.empty(piano_roll_size, dtype=np.uint8)
-        self._full_frames = np.empty(full_frame_size, dtype=np.uint8)
+        self._full_frame_buffer = np.empty(full_frame_size, dtype=np.uint8)
+        self._tmp_frame_buffer = np.empty(tmp_frame_size, dtype=np.uint8)
 
         # init dom freqs matrix, iterate through time, find peaks and threshold
         self.dominant_amplitudes = self.amplitudes.copy()
@@ -294,19 +305,29 @@ class Decomposer(object):
         for time in tqdm(range(self.t_final)):
             active_keys, active_ampltidues = _get_notes(time)
             keyboard, piano_roll_slice = self._generate_keyboard(active_keys, active_ampltidues)
-            self._full_frames[time, self.piano_roll_width:, ...] = keyboard
+            self._full_frame_buffer[time, self.piano_roll_width:, ...] = keyboard
             self._piano_roll[time, ...] = piano_roll_slice
         logger.info(f'mem after generating keyboard: {get_memory_usage()}')
 
+        cnt = 0
+        vid_num = 0
+        fps = 1. / (self.times[1] - self.times[0])
         for time in tqdm(range(self.t_final)):
             roll_slice = np.flip(np.squeeze(self._piano_roll[time:time + num_time_steps_in_1_sec, :]), axis=0)
-            # equivalent of np.repeat without copying
+            # equivalent of np.repeat without copying, very minor optimization
             # for i in range(roll_slice.shape[0]):
-            #     self._full_frames[time, i * stretch_vec_factor:(i + 1) * stretch_vec_factor, ...] = roll_slice[i]
+            #     self._tmp_frame_buffer[cnt, i * stretch_vec_factor:(i + 1) * stretch_vec_factor, ...] = roll_slice[i]
             p_frame = np.repeat(roll_slice, repeats=stretch_vec_factor, axis=0)
-            self._full_frames[time, :self.piano_roll_width, ...] = p_frame
-        logger.info(f'mem after generating piano slice: {get_memory_usage()}')
+            self._tmp_frame_buffer[cnt, :self.piano_roll_width, ...] = p_frame
 
+            # write frames to tmp video, clear tmp frame buffer
+            if cnt >= tmp_buffer_size-1:
+                imageio.mimwrite(f'tmp{vid_num}.mp4', self._tmp_frame_buffer, fps=fps)
+                cnt = 0
+                vid_num += 1
+                self._tmp_frame_buffer[:] = 0.
+            cnt += 1
+        logger.info(f'mem after generating piano slice: {get_memory_usage()}')
         logger.info('[DECOMPOSER] >>>> Mapped frequencies to notes and generated keyboard visualizations.')
 
     def _generate_keyboard(self, key_number_array, amp_array_non_zero):
@@ -438,14 +459,12 @@ class Decomposer(object):
 
     def _build_movie(self):
         """ Concatenate self._full_frames images into video file, add back original music. """
-        fps = 1. / (self.times[1] - self.times[0])
-
-        imageio.mimwrite('tmp.mp4', self._full_frames, fps=fps)
-
         outname = self.wav_file.replace('input', 'output')
         outname = outname.replace('wav', 'mp4')
+        mp4files = sorted(glob('tmp*.mp4'))
 
-        output = VideoFileClip('tmp.mp4').cutout(0, .3)  # trim to compensate for FFT lag
+        output = concatenate_videoclips([VideoFileClip(mp4file) for mp4file in mp4files])
+        output = output.cutout(0, .3)  # trim to compensate for FFT lag
         output = output.set_audio(AudioFileClip(self.wav_file))
         output.write_videofile(
             outname,
@@ -455,4 +474,4 @@ class Decomposer(object):
             codec="libx264",
             audio_codec="aac"
         )
-        os.remove('tmp.mp4')
+        [os.remove(mp4file) for mp4file in mp4files]

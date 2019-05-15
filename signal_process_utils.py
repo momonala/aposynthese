@@ -1,97 +1,99 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
+
 import pandas as pd
+import psutil
 
 
-def generate_frequency_table():
+def generate_frequency_table(scale=1):
     """ Run some dataframe manipluation upon import to generate the note/frequency table mappings. """
 
     # generate keypoints of octave 1 piano keys
-    top = 12
-    bottom_black = 168
-    bottom_white = 229
-    octave = 256
+    top = 12 // scale
+    bottom_black = 168 // scale
+    bottom_white = 229 // scale
+    octave = 256 // scale
 
-    a = [(22, top),
-         (22, bottom_black),
-         (7, bottom_black),
-         (7, bottom_white),
-         (43, bottom_white),
-         (43, bottom_black),
-         (30, bottom_black),
-         (30, top)]
+    a = [(22 // scale, top),
+         (22 // scale, bottom_black),
+         (7 // scale, bottom_black),
+         (7 // scale, bottom_white),
+         (43 // scale, bottom_white),
+         (43 // scale, bottom_black),
+         (30 // scale, bottom_black),
+         (30 // scale, top)]
 
-    bb = [(30, top),
-          (30, bottom_black),
-          (58, bottom_black),
-          (58, top)]
+    bb = [(30 // scale, top),
+          (30 // scale, bottom_black),
+          (58 // scale, bottom_black),
+          (58 // scale, top)]
 
-    b = [(58, top),
-         (58, bottom_black),
-         (43, bottom_black),
-         (43, bottom_white),
-         (79, bottom_white),
-         (79, top)]
+    b = [(58 // scale, top),
+         (58 // scale, bottom_black),
+         (43 // scale, bottom_black),
+         (43 // scale, bottom_white),
+         (79 // scale, bottom_white),
+         (79 // scale, top)]
 
-    c = [(79, top),
-         (79, bottom_white),
-         (116, bottom_white),
-         (116, bottom_black),
-         (102, bottom_black),
-         (102, top)]
+    c = [(79 // scale, top),
+         (79 // scale, bottom_white),
+         (116 // scale, bottom_white),
+         (116 // scale, bottom_black),
+         (102 // scale, bottom_black),
+         (102 // scale, top)]
 
-    db = [(102, top),
-          (102, bottom_black),
-          (131, bottom_black),
-          (131, top)]
+    db = [(102 // scale, top),
+          (102 // scale, bottom_black),
+          (131 // scale, bottom_black),
+          (131 // scale, top)]
 
-    d = [(131, top),
-         (131, bottom_black),
-         (116, bottom_black),
-         (116, bottom_white),
-         (153, bottom_white),
-         (153, bottom_black),
-         (138, bottom_black),
-         (138, top)]
+    d = [(131 // scale, top),
+         (131 // scale, bottom_black),
+         (116 // scale, bottom_black),
+         (116 // scale, bottom_white),
+         (153 // scale, bottom_white),
+         (153 // scale, bottom_black),
+         (138 // scale, bottom_black),
+         (138 // scale, top)]
 
-    eb = [(138, top),
-          (138, bottom_black),
-          (167, bottom_black),
-          (167, top)]
+    eb = [(138 // scale, top),
+          (138 // scale, bottom_black),
+          (167 // scale, bottom_black),
+          (167 // scale, top)]
 
-    e = [(167, top),
-         (167, bottom_black),
-         (153, bottom_black),
-         (153, bottom_white),
-         (190, bottom_white),
-         (190, top)]
+    e = [(167 // scale, top),
+         (167 // scale, bottom_black),
+         (153 // scale, bottom_black),
+         (153 // scale, bottom_white),
+         (190 // scale, bottom_white),
+         (190 // scale, top)]
 
-    f = [(190, top),
-         (190, bottom_white),
-         (224, bottom_white),
-         (224, bottom_black),
-         (212, bottom_black),
-         (212, top)]
+    f = [(190 // scale, top),
+         (190 // scale, bottom_white),
+         (224 // scale, bottom_white),
+         (224 // scale, bottom_black),
+         (212 // scale, bottom_black),
+         (212 // scale, top)]
 
-    gb = [(212, top),
-          (212, bottom_black),
-          (240, bottom_black),
-          (240, top)]
+    gb = [(212 // scale, top),
+          (212 // scale, bottom_black),
+          (240 // scale, bottom_black),
+          (240 // scale, top)]
 
-    g = [(240, top),
-         (240, bottom_black),
-         (224, bottom_black),
-         (224, bottom_white),
-         (262, bottom_white),
-         (262, bottom_black),
-         (248, bottom_black),
-         (248, top)]
+    g = [(240 // scale, top),
+         (240 // scale, bottom_black),
+         (224 // scale, bottom_black),
+         (224 // scale, bottom_white),
+         (262 // scale, bottom_white),
+         (262 // scale, bottom_black),
+         (248 // scale, bottom_black),
+         (248 // scale, top)]
 
-    ab = [(248, top),
-          (248, bottom_black),
-          (277, bottom_black),
-          (277, top)]
+    ab = [(248 // scale, top),
+          (248 // scale, bottom_black),
+          (277 // scale, bottom_black),
+          (277 // scale, top)]
 
     keys = {
         'a': a,
@@ -119,3 +121,13 @@ def generate_frequency_table():
             df.loc[88 - c] = [note + str(i), points]
             c += 1
     return freqs.join(df)
+
+
+def get_memory_usage():
+    """Returns memory usage of current process in MB. Used for logging.
+
+    Returns:
+        float: Memory usage of current process in MB.
+    """
+    pid = os.getpid()
+    return round(psutil.Process(pid).memory_info().rss / 1e6, 2)
