@@ -318,7 +318,9 @@ class Decomposer(object):
             # for i in range(roll_slice.shape[0]):
             #     self._tmp_frame_buffer[cnt, i * stretch_vec_factor:(i + 1) * stretch_vec_factor, ...] = roll_slice[i]
             p_frame = np.repeat(roll_slice, repeats=stretch_vec_factor, axis=0)
+            keyboard = self._full_frame_buffer[time, self.piano_roll_width:, ...]
             self._tmp_frame_buffer[cnt, :self.piano_roll_width, ...] = p_frame
+            self._tmp_frame_buffer[cnt, self.piano_roll_width:, ...] = keyboard
 
             # write frames to tmp video, clear tmp frame buffer
             if cnt >= tmp_buffer_size-1:
