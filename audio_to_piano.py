@@ -130,7 +130,6 @@ def decomposer_pipeline(arg_dict):
     song = arg_dict.get('song', None)
     youtube_url = arg_dict.get('youtube', None)
     max_time = arg_dict.get('max_time', None)
-    plot = arg_dict.get('plot', False)
 
     setup_dirs()
 
@@ -147,9 +146,9 @@ def decomposer_pipeline(arg_dict):
     # Decompose the song if needed
     if input_song:
         try:
-            Decomposer(input_song, stop_time=max_time).cvt_audio_to_piano()
+            Decomposer(input_song, stop_time=max_time, scale=2).cvt_audio_to_piano()
             logger.info(f'[PIPELINE] >>>> Song sucessfully decomposed!')
-        except Exception as e:
+        except Exception:
             logger.error(traceback.print_exc())
 
 
