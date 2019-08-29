@@ -274,7 +274,7 @@ class Decomposer(object):
         num_time_steps_in_1_sec = int(self.t_final / (self.stop_time or self.duration))
         stretch_vec_factor = int((self.width_full - self.keyboard_width) / num_time_steps_in_1_sec)
         piano_roll_width = num_time_steps_in_1_sec * stretch_vec_factor
-        self.width_full = self.keyboard_width+piano_roll_width  # update full frame size to approximated
+        self.width_full = self.keyboard_width + piano_roll_width  # update full frame size to approximated
 
         # init matrices for creating video from frames.
         # tmp_frame for writing smaller videos, avoids full video frame matrix in memory
@@ -302,8 +302,10 @@ class Decomposer(object):
             keyboard, piano_roll_slice = self._generate_keyboard(active_keys, active_ampltidues)
             full_frame_buffer[time, piano_roll_width:, ...] = keyboard
             piano_roll[time, ...] = piano_roll_slice
-        logger.info(f'[DECOMPOSER 1/2] >>>> Mapped frequencies to notes and generated keyboard visualizations. '
-                    f'MEM: {get_memory_usage()}')
+        logger.info(
+            f'[DECOMPOSER 1/2] >>>> Mapped frequencies to notes and generated keyboard visualizations. '
+            f'MEM: {get_memory_usage()}'
+        )
 
         for time in tqdm(range(self.t_final)):
             roll_slice = np.flip(np.squeeze(piano_roll[time:time + num_time_steps_in_1_sec, :]), axis=0)
@@ -313,8 +315,10 @@ class Decomposer(object):
             tmp_frame[piano_roll_width:, ...] = keyboard
             np.save(f'img/{time}.npy', tmp_frame)
 
-        logger.info(f'[DECOMPOSER 2/2] >>>> Mapped frequencies to notes and generated keyboard visualizations. '
-                    f'MEM: {get_memory_usage()}')
+        logger.info(
+            f'[DECOMPOSER 2/2] >>>> Mapped frequencies to notes and generated keyboard visualizations. '
+            f'MEM: {get_memory_usage()}'
+        )
 
     def _generate_keyboard(self, key_number_array, amp_array_non_zero):
         """ Iterate through notes found in sample and draw on keyboard image.
@@ -349,9 +353,7 @@ class Decomposer(object):
                     # color in detected note on keyboard img, stack onto output img
                     poly = Image.new('RGBA', (self.length_full, self.keyboard_width))
                     pdraw = ImageDraw.Draw(poly)
-                    pdraw.polygon(piano_loc_points,
-                                  fill=(0, 255, 0, int(255 * loudness)),
-                                  outline=(0, 255, 240, 255))
+                    pdraw.polygon(piano_loc_points, fill=(0, 255, 0, int(255 * loudness)), outline=(0, 255, 240, 255))
                     piano_out.paste(poly, mask=poly)
         return np.array(piano_out.convert('RGB')), piano_roll_slice
 
@@ -398,6 +400,7 @@ class Decomposer(object):
 
         import matplotlib.pyplot as plt
         import librosa.display
+
         plt.figure(figsize=(20, 6))
 
         # choose visualization scaling type
@@ -405,37 +408,18 @@ class Decomposer(object):
 
         def _get_spec_scaler(_spectrogram, _scaler):
             if _scaler == 'db':
-                return {
-                    'data': librosa.amplitude_to_db(spectrogram, ref=toh),
-                    'y_axis': 'log'
-                }
+                return {'data': librosa.amplitude_to_db(spectrogram, ref=toh), 'y_axis': 'log'}
             if _scaler == 'log':
-                return {
-                    'data': 10 * np.log10(_spectrogram + 1e-9),  # manual log scaling
-                    'y_axis': 'log'
-                }
+                return {'data': 10 * np.log10(_spectrogram + 1e-9), 'y_axis': 'log'}  # manual log scaling
             if _scaler == 'linear':
-                return {
-                    'data': _spectrogram,
-                    'y_axis': 'linear'
-                }
+                return {'data': _spectrogram, 'y_axis': 'linear'}
             if _scaler == 'mel':
-                return {
-                    'data': _spectrogram,
-                    'y_axis': 'mel'
-                }
+                return {'data': _spectrogram, 'y_axis': 'mel'}
             if _scaler == 'chromagram':
-                return {
-                    'data': self._format_chromagram(),
-                    'y_axis': 'linear'
-                }
+                return {'data': self._format_chromagram(), 'y_axis': 'linear'}
 
         librosa.display.specshow(
-            **_get_spec_scaler(spectrogram, scaler),
-            **kwargs,
-            x_axis='time',
-            fmax=self.max_freq,
-            sr=self.sample_rate
+            **_get_spec_scaler(spectrogram, scaler), **kwargs, x_axis='time', fmax=self.max_freq, sr=self.sample_rate
         )
 
         plt.title(title)
@@ -456,7 +440,7 @@ class Decomposer(object):
         # out.release()
         # output = VideoFileClip(outname)
 
-        output = ImageSequenceClip([np.load(t) for t in npy_files], fps=self.fps_out/2)
+        output = ImageSequenceClip([np.load(t) for t in npy_files], fps=self.fps_out / 2)
         output = output.cutout(0, 1)  # trim to compensate for FFT lag
         output = output.set_audio(AudioFileClip(self.wav_file))
         output.write_videofile(

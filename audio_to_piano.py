@@ -61,8 +61,10 @@ def _download_youtube_vid(youtube_url, youtube_id):
                 os.system(f'ffmpeg -y -i input/{youtube_id}.mp3 -acodec pcm_u8 -ar 22050 input/{youtube_id}.wav')
                 logger.info(f'[PIPELINE] >>>> Sucessfully converted video file to wav: {wav_name}.')
             except FileNotFoundError:
-                msg = f'[PIPELINE] >>>> Youtube download and/or wav conversion failed for [{wav_name}]. ' \
-                      f'Double check that URL is valid.'
+                msg = (
+                    f'[PIPELINE] >>>> Youtube download and/or wav conversion failed for [{wav_name}]. '
+                    f'Double check that URL is valid.'
+                )
                 logger.error(msg)
                 raise DecomposerError(msg)
 
