@@ -9,7 +9,7 @@ from glob import glob
 import librosa
 import numpy as np
 from PIL import Image, ImageDraw
-from moviepy.editor import AudioFileClip, ImageSequenceClip
+from moviepy.editor import AudioFileClip, VideoFileClip, ImageSequenceClip
 from scipy.signal import find_peaks
 from tqdm import tqdm
 
@@ -448,6 +448,13 @@ class Decomposer(object):
         outname = self.wav_file.replace('input', 'output')
         outname = outname.replace('wav', 'mp4')
         npy_files = sorted(glob('img/*npy'), key=lambda x: int(x[4:-4]))  # sort by num
+
+        # import cv2
+        # fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        # out = cv2.VideoWriter(outname, fourcc, 20.0, (640, 480))
+        # [out.write(np.load(frame)) for frame in npy_files]
+        # out.release()
+        # output = VideoFileClip(outname)
 
         output = ImageSequenceClip([np.load(t) for t in npy_files], fps=self.fps_out/2)
         output = output.cutout(0, 1)  # trim to compensate for FFT lag
