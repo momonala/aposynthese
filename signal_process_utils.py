@@ -15,85 +15,89 @@ def generate_frequency_table(scale=1):
     bottom_white = 229 // scale
     octave = 256 // scale
 
-    a = [(22 // scale, top),
-         (22 // scale, bottom_black),
-         (7 // scale, bottom_black),
-         (7 // scale, bottom_white),
-         (43 // scale, bottom_white),
-         (43 // scale, bottom_black),
-         (30 // scale, bottom_black),
-         (30 // scale, top)]
+    a = [
+        (22 // scale, top),
+        (22 // scale, bottom_black),
+        (7 // scale, bottom_black),
+        (7 // scale, bottom_white),
+        (43 // scale, bottom_white),
+        (43 // scale, bottom_black),
+        (30 // scale, bottom_black),
+        (30 // scale, top),
+    ]
 
-    bb = [(30 // scale, top),
-          (30 // scale, bottom_black),
-          (58 // scale, bottom_black),
-          (58 // scale, top)]
+    bb = [(30 // scale, top), (30 // scale, bottom_black), (58 // scale, bottom_black), (58 // scale, top)]
 
-    b = [(58 // scale, top),
-         (58 // scale, bottom_black),
-         (43 // scale, bottom_black),
-         (43 // scale, bottom_white),
-         (79 // scale, bottom_white),
-         (79 // scale, top)]
+    b = [
+        (58 // scale, top),
+        (58 // scale, bottom_black),
+        (43 // scale, bottom_black),
+        (43 // scale, bottom_white),
+        (79 // scale, bottom_white),
+        (79 // scale, top),
+    ]
 
-    c = [(79 // scale, top),
-         (79 // scale, bottom_white),
-         (116 // scale, bottom_white),
-         (116 // scale, bottom_black),
-         (102 // scale, bottom_black),
-         (102 // scale, top)]
+    c = [
+        (79 // scale, top),
+        (79 // scale, bottom_white),
+        (116 // scale, bottom_white),
+        (116 // scale, bottom_black),
+        (102 // scale, bottom_black),
+        (102 // scale, top),
+    ]
 
-    db = [(102 // scale, top),
-          (102 // scale, bottom_black),
-          (131 // scale, bottom_black),
-          (131 // scale, top)]
+    db = [(102 // scale, top), (102 // scale, bottom_black), (131 // scale, bottom_black), (131 // scale, top)]
 
-    d = [(131 // scale, top),
-         (131 // scale, bottom_black),
-         (116 // scale, bottom_black),
-         (116 // scale, bottom_white),
-         (153 // scale, bottom_white),
-         (153 // scale, bottom_black),
-         (138 // scale, bottom_black),
-         (138 // scale, top)]
+    d = [
+        (131 // scale, top),
+        (131 // scale, bottom_black),
+        (116 // scale, bottom_black),
+        (116 // scale, bottom_white),
+        (153 // scale, bottom_white),
+        (153 // scale, bottom_black),
+        (138 // scale, bottom_black),
+        (138 // scale, top),
+    ]
 
-    eb = [(138 // scale, top),
-          (138 // scale, bottom_black),
-          (167 // scale, bottom_black),
-          (167 // scale, top)]
+    eb = [(138 // scale, top), (138 // scale, bottom_black), (167 // scale, bottom_black), (167 // scale, top)]
 
-    e = [(167 // scale, top),
-         (167 // scale, bottom_black),
-         (153 // scale, bottom_black),
-         (153 // scale, bottom_white),
-         (190 // scale, bottom_white),
-         (190 // scale, top)]
+    e = [
+        (167 // scale, top),
+        (167 // scale, bottom_black),
+        (153 // scale, bottom_black),
+        (153 // scale, bottom_white),
+        (190 // scale, bottom_white),
+        (190 // scale, top),
+    ]
 
-    f = [(190 // scale, top),
-         (190 // scale, bottom_white),
-         (224 // scale, bottom_white),
-         (224 // scale, bottom_black),
-         (212 // scale, bottom_black),
-         (212 // scale, top)]
+    f = [
+        (190 // scale, top),
+        (190 // scale, bottom_white),
+        (224 // scale, bottom_white),
+        (224 // scale, bottom_black),
+        (212 // scale, bottom_black),
+        (212 // scale, top),
+    ]
 
-    gb = [(212 // scale, top),
-          (212 // scale, bottom_black),
-          (240 // scale, bottom_black),
-          (240 // scale, top)]
+    gb = [(212 // scale, top), (212 // scale, bottom_black), (240 // scale, bottom_black), (240 // scale, top)]
 
-    g = [(240 // scale, top),
-         (240 // scale, bottom_black),
-         (224 // scale, bottom_black),
-         (224 // scale, bottom_white),
-         (262 // scale, bottom_white),
-         (262 // scale, bottom_black),
-         (248 // scale, bottom_black),
-         (248 // scale, top)]
+    g = [
+        (240 // scale, top),
+        (240 // scale, bottom_black),
+        (224 // scale, bottom_black),
+        (224 // scale, bottom_white),
+        (262 // scale, bottom_white),
+        (262 // scale, bottom_black),
+        (248 // scale, bottom_black),
+        (248 // scale, top),
+    ]
 
-    ab = [(248 // scale, top),
-          (248 // scale, bottom_black),
-          (277 // scale, bottom_black),
-          (277 // scale, top)]
+    ab = [
+        (248 // scale, top),
+        (248 // scale, bottom_black),
+        (277 // scale, bottom_black),
+        (277 // scale, top)
+    ]
 
     keys = {
         'a': a,

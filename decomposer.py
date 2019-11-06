@@ -25,7 +25,6 @@ stdout_handler.setLevel(logging.INFO)
 
 
 class Decomposer(object):
-
     def __init__(self, wav_file=None, stop_time=None, scale=2):
         """ Class to decompose an wav file into its frequency vs. time spectrogram,
         and map that to piano keys.
@@ -44,8 +43,7 @@ class Decomposer(object):
 
         # downsize for memory optimization
         self.piano_template = self.piano_template.resize(
-            tuple(x//scale for x in self.piano_template.size),
-            Image.ANTIALIAS
+            tuple(x // scale for x in self.piano_template.size), Image.ANTIALIAS
         )
 
         # hardcoded constants
@@ -125,7 +123,7 @@ class Decomposer(object):
         n = arr.strides[0]
         windowed_matrix = np.lib.stride_tricks.as_strided(arr, shape=(nrows, length), strides=(stride * n, n))
         median = np.median(windowed_matrix, axis=1)
-        arr[-median.shape[0]:] = median
+        arr[-median.shape[0] :] = median
         return arr
 
     def _generate_spectrogram(self):
@@ -176,17 +174,9 @@ class Decomposer(object):
         s_filter = np.minimum(spectrogram, s_filter)
         margin_i, margin_v, power = 2, 10, 2
 
-        mask_i = librosa.util.softmask(
-            s_filter,
-            margin_i * (spectrogram - s_filter),
-            power=power
-        )
+        mask_i = librosa.util.softmask(s_filter, margin_i * (spectrogram - s_filter), power=power)
 
-        mask_v = librosa.util.softmask(
-            spectrogram - s_filter,
-            margin_v * s_filter,
-            power=power
-        )
+        mask_v = librosa.util.softmask(spectrogram - s_filter, margin_v * s_filter, power=power)
 
         s_foreground = mask_v * spectrogram
         s_background = mask_i * spectrogram
@@ -266,7 +256,7 @@ class Decomposer(object):
                 amp_array_non_zero = amp_arr[freq_idx_non_zero]
 
                 # Note: Chromagram uses raw amplitude values. It has not been normalzied or thresholded!
-                self.chromagram[key_number_array-1, t] = amp_array_non_zero
+                self.chromagram[key_number_array - 1, t] = amp_array_non_zero
                 return key_number_array, amp_array_non_zero
             return None, None
 
@@ -308,7 +298,7 @@ class Decomposer(object):
         )
 
         for time in tqdm(range(self.t_final)):
-            roll_slice = np.flip(np.squeeze(piano_roll[time:time + num_time_steps_in_1_sec, :]), axis=0)
+            roll_slice = np.flip(np.squeeze(piano_roll[time : time + num_time_steps_in_1_sec, :]), axis=0)
             p_frame = np.repeat(roll_slice, repeats=stretch_vec_factor, axis=0)
             keyboard = full_frame_buffer[time, piano_roll_width:, ...]
             tmp_frame[:piano_roll_width, ...] = p_frame
@@ -348,7 +338,7 @@ class Decomposer(object):
                         continue  # handle nan case
 
                     # fill in time vector for piano roll
-                    piano_roll_slice[:, piano_loc_points[0][0]:piano_loc_points[-1][0], 1] = int(255 * loudness)
+                    piano_roll_slice[:, piano_loc_points[0][0] : piano_loc_points[-1][0], 1] = int(255 * loudness)
 
                     # color in detected note on keyboard img, stack onto output img
                     poly = Image.new('RGBA', (self.length_full, self.keyboard_width))
