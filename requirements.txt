@@ -3,7 +3,7 @@ matplotlib==3.1.0
 scipy==1.3.0
 tqdm==4.32.1
 moviepy==1.0.0
-numpy==1.16.3
+numpy==1.22.0
 pandas==0.24.2
 librosa==0.6.3
 Pillow==6.2.0
